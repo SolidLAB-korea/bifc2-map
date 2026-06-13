@@ -20,14 +20,14 @@ const markerLabels: Record<string, string> = {
 };
 
 export default function StoreMarker({ store, isSelected, isDimmed = false, onSelect }: StoreMarkerProps) {
-  const labelPositionClass = store.y > 76 ? "bottom-12" : "top-12";
+  const labelPositionClass = store.y > 76 ? "bottom-10" : "top-10";
 
   return (
     <button
       type="button"
       onClick={() => onSelect(store)}
-      className={`group absolute z-10 flex min-h-11 min-w-11 -translate-x-1/2 -translate-y-1/2 items-center justify-center rounded-full border-4 border-white text-xs font-black text-white shadow-lg transition ${
-        isSelected ? "scale-125 bg-accent ring-4 ring-amber-300" : "bg-primary"
+      className={`group absolute z-10 flex h-9 w-9 -translate-x-1/2 -translate-y-1/2 items-center justify-center rounded-full border-[3px] border-white text-[11px] font-black text-white shadow-lg transition ${
+        isSelected ? "scale-[1.15] bg-accent ring-[3px] ring-amber-300" : "bg-primary"
       } ${isDimmed ? "opacity-30" : "opacity-100"}`}
       style={{ left: `${store.x}%`, top: `${store.y}%` }}
       aria-label={`${store.name} 상세 정보 보기`}
