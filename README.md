@@ -27,7 +27,27 @@ npm run build
 VITE_ADMIN_PASSWORD=원하는_비밀번호
 ```
 
-정적 프론트엔드 앱의 관리자 비밀번호는 완전한 서버 보안이 아닙니다. 현재 운영 방식은 로컬에서 데이터를 수정하고 Git으로 커밋/배포하는 흐름을 기준으로 합니다.
+정적 프론트엔드 앱의 관리자 비밀번호는 완전한 서버 보안이 아닙니다. Supabase 연결 후에는 관리자 메뉴에서 추가/수정/삭제한 매장 정보가 DB에 저장되어 모든 사용자에게 반영됩니다.
+
+## Supabase DB 연결
+
+1. Supabase 프로젝트를 만듭니다.
+2. Supabase SQL Editor에서 `supabase/schema.sql` 내용을 실행합니다.
+3. 프로젝트 루트에 `.env` 파일을 만들고 아래 값을 입력합니다.
+
+```bash
+VITE_ADMIN_PASSWORD=원하는_관리자_비밀번호
+VITE_SUPABASE_URL=https://your-project.supabase.co
+VITE_SUPABASE_ANON_KEY=your-anon-key
+```
+
+4. 다시 빌드하고 GitHub에 배포합니다.
+
+```bash
+npm run build
+```
+
+환경변수가 없으면 앱은 기존처럼 브라우저 localStorage에 임시 저장합니다.
 
 ## 지도 이미지
 
