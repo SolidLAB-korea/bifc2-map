@@ -41,7 +41,7 @@ export default function FavoritesPage() {
   );
 
   return (
-    <main className="mx-auto max-w-4xl px-4 py-4">
+    <main className="app-container max-w-4xl py-4">
       <section className="rounded-lg border border-slate-200 bg-white p-4 shadow-panel">
         <div className="mb-4 flex items-center justify-between gap-3">
           <div>

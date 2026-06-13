@@ -37,7 +37,7 @@ export default function StoreDetailPage() {
   };
 
   return (
-    <main className="mx-auto grid max-w-6xl gap-4 px-4 py-4 lg:grid-cols-[420px_minmax(0,1fr)]">
+    <main className="app-container grid gap-4 py-4 lg:grid-cols-[420px_minmax(0,1fr)]">
       <section className="rounded-lg border border-slate-200 bg-white p-5 shadow-panel">
         {store.image && (
           <img

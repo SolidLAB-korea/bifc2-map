@@ -139,7 +139,7 @@ export default function HomePage() {
   };
 
   return (
-    <main className="mx-auto grid max-w-6xl gap-4 px-4 py-4">
+    <main className="app-container grid gap-4 py-4">
       <section className="rounded-lg border border-slate-200 bg-white p-4 shadow-panel" aria-label="상가 검색 및 층 선택">
         <h2 className="mb-3 text-xl font-black text-primary">BIFC2 상가 안내지도</h2>
         <SearchBar value={query} onChange={setQuery} />
