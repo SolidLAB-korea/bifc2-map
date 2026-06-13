@@ -10,7 +10,14 @@ import StoreList from "../components/StoreList";
 import StoreManager from "../components/StoreManager";
 import { categories, floors, stores as defaultStores } from "../data/stores";
 import type { Floor, Store } from "../types/store";
-import { getStoredStores, resetStoredStores, setStoredStores } from "../utils/storage";
+import {
+  createStore,
+  deleteStore,
+  isSupabaseConfigured,
+  loadStores,
+  resetStores,
+  updateStore
+} from "../utils/storeRepository";
 
 export default function HomePage() {
   const [searchParams] = useSearchParams();
@@ -18,20 +25,29 @@ export default function HomePage() {
   const [selectedCategory, setSelectedCategory] = useState("전체");
   const [selectedFloor, setSelectedFloor] = useState<Floor>("1F");
   const [selectedStore, setSelectedStore] = useState<Store | null>(null);
-  const [storeItems, setStoreItems] = useState<Store[]>(() => getStoredStores(defaultStores));
-
-  const saveStores = (nextStores: Store[]) => {
-    setStoreItems(nextStores);
-    setStoredStores(nextStores);
-  };
+  const [storeItems, setStoreItems] = useState<Store[]>(defaultStores);
+  const [storeError, setStoreError] = useState("");
+  const [isStoreLoading, setIsStoreLoading] = useState(true);
 
   useEffect(() => {
-    const syncStores = () => setStoreItems(getStoredStores(defaultStores));
+    const syncStores = () => {
+      setIsStoreLoading(true);
+      loadStores(defaultStores)
+        .then((nextStores) => {
+          setStoreItems(nextStores);
+          setStoreError("");
+        })
+        .catch((error: Error) => {
+          setStoreItems(defaultStores);
+          setStoreError(error.message);
+        })
+        .finally(() => setIsStoreLoading(false));
+    };
+
+    syncStores();
     window.addEventListener("stores-updated", syncStores);
-    window.addEventListener("storage", syncStores);
     return () => {
       window.removeEventListener("stores-updated", syncStores);
-      window.removeEventListener("storage", syncStores);
     };
   }, []);
 
@@ -75,27 +91,51 @@ export default function HomePage() {
     setSelectedStore(store);
   };
 
-  const handleCreateStore = (store: Store) => {
-    saveStores([...storeItems, store]);
-  };
-
-  const handleUpdateStore = (store: Store) => {
-    saveStores(storeItems.map((item) => (item.id === store.id ? store : item)));
-    if (selectedStore?.id === store.id) {
-      setSelectedStore(store);
+  const handleCreateStore = async (store: Store) => {
+    try {
+      const nextStores = await createStore(store, storeItems);
+      setStoreItems(nextStores);
+      setStoreError("");
+    } catch (error) {
+      setStoreError(error instanceof Error ? error.message : "매장 추가에 실패했습니다.");
     }
   };
 
-  const handleDeleteStore = (storeId: string) => {
-    saveStores(storeItems.filter((store) => store.id !== storeId));
-    if (selectedStore?.id === storeId) {
+  const handleUpdateStore = async (store: Store) => {
+    try {
+      const nextStores = await updateStore(store, storeItems);
+      setStoreItems(nextStores);
+      if (selectedStore?.id === store.id) {
+        setSelectedStore(store);
+      }
+      setStoreError("");
+    } catch (error) {
+      setStoreError(error instanceof Error ? error.message : "매장 수정에 실패했습니다.");
+    }
+  };
+
+  const handleDeleteStore = async (storeId: string) => {
+    try {
+      const nextStores = await deleteStore(storeId, storeItems);
+      setStoreItems(nextStores);
+      if (selectedStore?.id === storeId) {
+        setSelectedStore(null);
+      }
+      setStoreError("");
+    } catch (error) {
+      setStoreError(error instanceof Error ? error.message : "매장 삭제에 실패했습니다.");
+    }
+  };
+
+  const handleResetStores = async () => {
+    try {
+      const nextStores = await resetStores(defaultStores);
+      setStoreItems(nextStores);
       setSelectedStore(null);
+      setStoreError("");
+    } catch (error) {
+      setStoreError(error instanceof Error ? error.message : "기본 데이터 복원에 실패했습니다.");
     }
-  };
-
-  const handleResetStores = () => {
-    setStoreItems(resetStoredStores(defaultStores));
-    setSelectedStore(null);
   };
 
   return (
@@ -163,6 +203,17 @@ export default function HomePage() {
       </div>
 
       <section>
+        <div className="mb-3 grid gap-2">
+          <p className="rounded-lg border border-slate-200 bg-white px-4 py-3 text-sm font-bold text-slate-600">
+            데이터 저장소: {isSupabaseConfigured ? "Supabase DB" : "브라우저 localStorage"}
+            {isStoreLoading ? " · 불러오는 중" : ""}
+          </p>
+          {storeError && (
+            <p className="rounded-lg border border-rose-200 bg-rose-50 px-4 py-3 text-sm font-bold text-rose-700">
+              {storeError}
+            </p>
+          )}
+        </div>
         <StoreManager
           stores={visibleStoreItems}
           onCreate={handleCreateStore}

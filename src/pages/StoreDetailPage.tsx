@@ -5,21 +5,24 @@ import MapView from "../components/MapView";
 import { StoreFacts } from "../components/StoreBottomSheet";
 import { floors, stores as defaultStores } from "../data/stores";
 import type { Floor, Store } from "../types/store";
-import { getStoredStores } from "../utils/storage";
+import { loadStores } from "../utils/storeRepository";
 
 export default function StoreDetailPage() {
   const { id } = useParams();
   const navigate = useNavigate();
-  const [storeItems, setStoreItems] = useState<Store[]>(() => getStoredStores(defaultStores));
+  const [storeItems, setStoreItems] = useState<Store[]>(defaultStores);
   const store = storeItems.find((item) => item.id === id);
 
   useEffect(() => {
-    const syncStores = () => setStoreItems(getStoredStores(defaultStores));
+    const syncStores = () => {
+      loadStores(defaultStores)
+        .then(setStoreItems)
+        .catch(() => setStoreItems(defaultStores));
+    };
+    syncStores();
     window.addEventListener("stores-updated", syncStores);
-    window.addEventListener("storage", syncStores);
     return () => {
       window.removeEventListener("stores-updated", syncStores);
-      window.removeEventListener("storage", syncStores);
     };
   }, []);
 

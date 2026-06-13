@@ -2,6 +2,7 @@ import { useEffect, useMemo, useState, type FormEvent } from "react";
 import { categories, floors } from "../data/stores";
 import type { Floor, Store } from "../types/store";
 import { isAdminSignedIn, setAdminSignedIn } from "../utils/storage";
+import { isSupabaseConfigured } from "../utils/storeRepository";
 
 type StoreManagerProps = {
   stores: Store[];
@@ -77,17 +78,18 @@ export default function StoreManager({
 
   const handleSubmit = (event: FormEvent<HTMLFormElement>) => {
     event.preventDefault();
+    const { keywordsText, ...storeForm } = form;
     const store: Store = {
-      ...form,
-      id: isEditing ? form.id : createStoreId(form.name),
-      floor: form.floor as Floor,
+      ...storeForm,
+      id: isEditing ? storeForm.id : createStoreId(storeForm.name),
+      floor: storeForm.floor as Floor,
       x: clampPercent(form.x),
       y: clampPercent(form.y),
-      keywords: form.keywordsText
+      keywords: keywordsText
         .split(",")
         .map((keyword) => keyword.trim())
         .filter(Boolean),
-      image: form.image?.trim() || undefined
+      image: storeForm.image?.trim() || undefined
     };
 
     if (isEditing) {
@@ -308,7 +310,7 @@ export default function StoreManager({
               }}
               className="min-h-11 rounded-lg border border-slate-200 bg-slate-50 px-4 text-sm font-bold text-slate-600"
             >
-              기본 데이터로 되돌리기
+              {isSupabaseConfigured ? "DB 매장 전체 삭제" : "기본 데이터로 되돌리기"}
             </button>
           </form>
         </div>

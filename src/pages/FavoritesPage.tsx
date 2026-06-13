@@ -4,12 +4,13 @@ import StoreBottomSheet from "../components/StoreBottomSheet";
 import StoreList from "../components/StoreList";
 import { floors, stores as defaultStores } from "../data/stores";
 import type { Floor, Store } from "../types/store";
-import { getFavoriteIds, getStoredStores } from "../utils/storage";
+import { getFavoriteIds } from "../utils/storage";
+import { loadStores } from "../utils/storeRepository";
 
 export default function FavoritesPage() {
   const [favoriteIds, setFavoriteIds] = useState<string[]>(() => getFavoriteIds());
   const [selectedStore, setSelectedStore] = useState<Store | null>(null);
-  const [storeItems, setStoreItems] = useState<Store[]>(() => getStoredStores(defaultStores));
+  const [storeItems, setStoreItems] = useState<Store[]>(defaultStores);
 
   useEffect(() => {
     const syncFavorites = () => setFavoriteIds(getFavoriteIds());
@@ -22,12 +23,15 @@ export default function FavoritesPage() {
   }, []);
 
   useEffect(() => {
-    const syncStores = () => setStoreItems(getStoredStores(defaultStores));
+    const syncStores = () => {
+      loadStores(defaultStores)
+        .then(setStoreItems)
+        .catch(() => setStoreItems(defaultStores));
+    };
+    syncStores();
     window.addEventListener("stores-updated", syncStores);
-    window.addEventListener("storage", syncStores);
     return () => {
       window.removeEventListener("stores-updated", syncStores);
-      window.removeEventListener("storage", syncStores);
     };
   }, []);
 
