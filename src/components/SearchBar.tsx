@@ -15,7 +15,7 @@ export default function SearchBar({ value, onChange }: SearchBarProps) {
         onChange={(event) => onChange(event.target.value)}
         placeholder="매장명, 업종, 층수, 키워드 검색"
         type="search"
-        aria-label="상가 검색"
+        aria-label="스퀘어가든 검색"
       />
     </label>
   );
