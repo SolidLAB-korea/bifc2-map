@@ -9,10 +9,6 @@ type StoreMarkerProps = {
 
 const categoryIconTypes: Record<string, IconType> = {
   음식점: "food",
-  한식: "food",
-  중식: "food",
-  일식: "food",
-  양식: "food",
   패스트푸드: "food",
   분식: "food",
   카페: "coffee",
@@ -27,7 +23,7 @@ const categoryIconTypes: Record<string, IconType> = {
   생활편의: "service",
   "미용/뷰티": "service",
   "회의/업무": "briefcase",
-  "안내/관리": "info",
+  세무: "briefcase",
   화장실: "restroom",
   엘리베이터: "elevator",
   에스컬레이터: "elevator",
