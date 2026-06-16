@@ -139,20 +139,20 @@ export default function HomePage() {
   };
 
   return (
-    <main className="app-container grid gap-4 py-4">
-      <section className="rounded-lg border border-slate-200 bg-white p-4 shadow-panel" aria-label="스퀘어가든 검색 및 층 선택">
-        <h2 className="mb-3 text-xl font-black text-primary">BIFC2 스퀘어가든 안내지도</h2>
+    <main className="app-container grid gap-3 py-3 sm:gap-4 sm:py-4">
+      <section className="rounded-lg border border-slate-200 bg-white p-3 shadow-panel sm:p-4" aria-label="스퀘어가든 검색 및 층 선택">
+        <h2 className="mb-2 text-lg font-black text-primary sm:mb-3 sm:text-xl">BIFC2 스퀘어가든 안내지도</h2>
         <SearchBar value={query} onChange={setQuery} />
-        <div className="mt-4">
+        <div className="mt-3 sm:mt-4">
           <CategoryFilter categories={categories} selectedCategory={selectedCategory} onSelect={setSelectedCategory} />
         </div>
-        <div className="mt-4">
+        <div className="mt-3 sm:mt-4">
           <FloorSelector floors={floors} selectedFloor={selectedFloor} onSelect={setSelectedFloor} />
         </div>
       </section>
 
-      <div className="grid gap-4 lg:grid-cols-[minmax(0,1fr)_380px] lg:items-start">
-        <section className="grid gap-4">
+      <div className="grid gap-3 sm:gap-4 lg:grid-cols-[minmax(0,1fr)_380px] lg:items-start">
+        <section className="grid gap-3 sm:gap-4">
           <MapView
             floor={selectedFloor}
             stores={floorStores}

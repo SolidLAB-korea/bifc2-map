@@ -39,41 +39,43 @@ export default function MapView({
 
   return (
     <section className="overflow-hidden rounded-lg border border-slate-200 bg-white shadow-panel" aria-label={`${floor} 지도`}>
-      <div className="flex items-center justify-between border-b border-slate-200 px-4 py-3">
+      <div className="flex items-center justify-between border-b border-slate-200 px-3 py-2 sm:px-4 sm:py-3">
         <div>
-          <p className="text-xs font-bold text-slate-500">현재 층</p>
-          <h2 className="text-2xl font-black text-primary">{floor}</h2>
+          <p className="text-[11px] font-bold leading-none text-slate-500 sm:text-xs">현재 층</p>
+          <h2 className="text-xl font-black leading-tight text-primary sm:text-2xl">{floor}</h2>
         </div>
-        <span className="rounded-full bg-blue-50 px-3 py-1 text-sm font-bold text-accent">
+        <span className="rounded-full bg-blue-50 px-2.5 py-1 text-xs font-bold text-accent sm:px-3 sm:text-sm">
           {stores.length}곳
         </span>
       </div>
 
-      <div
-        className="relative m-3 overflow-hidden rounded-lg border-2 border-slate-300 bg-slate-50"
-        style={{ aspectRatio: floorAspectRatioMap[floor] }}
-      >
-        {!showPlaceholder && (
-          <img
-            src={imageSrc}
-            alt={`${floor} 층별 지도`}
-            className="absolute inset-0 h-full w-full object-contain"
-            onError={() => setFailedImages((previous) => ({ ...previous, [floor]: true }))}
-          />
-        )}
-
-        {showPlaceholder && <PlaceholderMap floor={floor} />}
-
-        <div className="absolute inset-0">
-          {stores.map((store) => (
-            <StoreMarker
-              key={store.id}
-              store={store}
-              isSelected={store.id === selectedStoreId}
-              isDimmed={shouldDimMarkers && !highlightedSet.has(store.id)}
-              onSelect={onStoreSelect}
+      <div className="max-h-[48vh] overflow-auto overscroll-contain sm:max-h-none sm:overflow-visible">
+        <div
+          className="relative m-2 min-w-[620px] overflow-hidden rounded-lg border-2 border-slate-300 bg-slate-50 sm:m-3 sm:min-w-0"
+          style={{ aspectRatio: floorAspectRatioMap[floor] }}
+        >
+          {!showPlaceholder && (
+            <img
+              src={imageSrc}
+              alt={`${floor} 층별 지도`}
+              className="absolute inset-0 h-full w-full object-contain"
+              onError={() => setFailedImages((previous) => ({ ...previous, [floor]: true }))}
             />
-          ))}
+          )}
+
+          {showPlaceholder && <PlaceholderMap floor={floor} />}
+
+          <div className="absolute inset-0">
+            {stores.map((store) => (
+              <StoreMarker
+                key={store.id}
+                store={store}
+                isSelected={store.id === selectedStoreId}
+                isDimmed={shouldDimMarkers && !highlightedSet.has(store.id)}
+                onSelect={onStoreSelect}
+              />
+            ))}
+          </div>
         </div>
       </div>
     </section>

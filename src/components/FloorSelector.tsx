@@ -8,7 +8,7 @@ type FloorSelectorProps = {
 
 export default function FloorSelector({ floors, selectedFloor, onSelect }: FloorSelectorProps) {
   return (
-    <div className="grid grid-cols-4 gap-2" aria-label="층 선택">
+    <div className="grid grid-cols-3 gap-1.5 sm:gap-2" aria-label="층 선택">
       {floors.map((floor) => {
         const isSelected = floor === selectedFloor;
         return (
@@ -16,7 +16,7 @@ export default function FloorSelector({ floors, selectedFloor, onSelect }: Floor
             key={floor}
             type="button"
             onClick={() => onSelect(floor)}
-            className={`min-h-12 rounded-lg border text-base font-black ${
+            className={`min-h-9 rounded-md border text-sm font-black sm:min-h-12 sm:rounded-lg sm:text-base ${
               isSelected ? "border-accent bg-accent text-white" : "border-slate-200 bg-white text-primary"
             }`}
             aria-label={`${floor} 지도 보기`}
