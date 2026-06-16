@@ -39,19 +39,19 @@ export default function MapView({
 
   return (
     <section className="overflow-hidden rounded-lg border border-slate-200 bg-white shadow-panel" aria-label={`${floor} 지도`}>
-      <div className="flex items-center justify-between border-b border-slate-200 px-3 py-2 sm:px-4 sm:py-3">
+      <div className="flex items-center justify-between border-b border-slate-200 px-3 py-1.5 sm:px-4 sm:py-3">
         <div>
           <p className="text-[11px] font-bold leading-none text-slate-500 sm:text-xs">현재 층</p>
-          <h2 className="text-xl font-black leading-tight text-primary sm:text-2xl">{floor}</h2>
+          <h2 className="text-lg font-black leading-tight text-primary sm:text-2xl">{floor}</h2>
         </div>
         <span className="rounded-full bg-blue-50 px-2.5 py-1 text-xs font-bold text-accent sm:px-3 sm:text-sm">
           {stores.length}곳
         </span>
       </div>
 
-      <div className="max-h-[48vh] overflow-auto overscroll-contain sm:max-h-none sm:overflow-visible">
+      <div className="overflow-hidden">
         <div
-          className="relative m-2 min-w-[620px] overflow-hidden rounded-lg border-2 border-slate-300 bg-slate-50 sm:m-3 sm:min-w-0"
+          className="relative m-1 overflow-hidden rounded-md border border-slate-300 bg-slate-50 sm:m-3 sm:rounded-lg sm:border-2"
           style={{ aspectRatio: floorAspectRatioMap[floor] }}
         >
           {!showPlaceholder && (
