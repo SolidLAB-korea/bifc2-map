@@ -5,6 +5,7 @@
 @layer base {
   html {
     background: #f5f7fa;
+    overflow-x: hidden;
   }
 
   body {
@@ -14,6 +15,7 @@
     color: #172033;
     background: #f5f7fa;
     font-family: Arial, "Noto Sans KR", sans-serif;
+    overflow-x: hidden;
   }
 
   button,
@@ -27,6 +29,7 @@
     width: min(100%, 72rem);
     margin-inline: auto;
     padding-inline: 0.75rem;
+    min-width: 0;
   }
 
   @media (min-width: 640px) {
