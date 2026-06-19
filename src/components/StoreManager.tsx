@@ -169,7 +169,7 @@ export default function StoreManager({
             aria-label="관리자 메뉴 닫기"
           />
 
-          <div className="relative grid max-h-[88vh] w-full max-w-3xl overflow-hidden rounded-xl bg-white shadow-2xl">
+          <div className="relative grid max-h-[88dvh] w-full max-w-3xl grid-rows-[auto_minmax(0,1fr)] overflow-hidden rounded-xl bg-white shadow-2xl">
             <div className="flex items-start justify-between gap-3 border-b border-slate-200 px-4 py-3 sm:px-5">
               <div className="min-w-0">
                 <p className="text-xs font-bold text-slate-500">{isSignedIn ? "관리자 모드" : "관리자 전용"}</p>
@@ -187,7 +187,7 @@ export default function StoreManager({
               </button>
             </div>
 
-            <div className="overflow-y-auto p-4 sm:p-5">
+            <div className="min-h-0 overflow-y-auto overscroll-contain p-4 touch-pan-y sm:p-5">
               {!isSignedIn ? (
                 <form className="grid gap-3" onSubmit={handleSignIn}>
                   <label className="grid gap-1 text-sm font-bold text-slate-700">
