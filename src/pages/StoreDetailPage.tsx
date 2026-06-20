@@ -40,11 +40,7 @@ export default function StoreDetailPage() {
     <main className="app-container grid gap-4 py-4 lg:grid-cols-[420px_minmax(0,1fr)]">
       <section className="rounded-lg border border-slate-200 bg-white p-5 shadow-panel">
         {store.image && (
-          <img
-            src={store.image}
-            alt={`${store.name} 대표 이미지`}
-            className="mb-4 h-44 w-full rounded-lg object-cover"
-          />
+          <img src={store.image} alt={`${store.name} 대표 이미지`} className="mb-4 h-44 w-full rounded-lg object-cover" />
         )}
         <p className="text-sm font-black text-accent">{store.category}</p>
         <h2 className="mt-1 break-keep text-3xl font-black text-primary">{store.name}</h2>
@@ -54,15 +50,26 @@ export default function StoreDetailPage() {
           <StoreFacts store={store} />
         </div>
 
-        <div className="mt-4 grid gap-2 sm:grid-cols-2">
+        <section className="mt-4 rounded-lg border border-slate-200 p-3" aria-label="매장 바로가기">
+          <h3 className="text-sm font-black text-primary">바로가기</h3>
+          <div className="mt-3 grid gap-2">
+            <ActionLink label="지도에서 위치 보기" href={`/?floor=${store.floor}&store=${store.id}`} internal variant="primary" />
+            <ActionLink label="전화하기" href={createPhoneHref(store.phone)} disabled={!createPhoneHref(store.phone)} />
+            <ActionLink label="네이버 플레이스" href={store.links?.naverPlace || createNaverSearchUrl(store.name)} external />
+            <ActionLink label="예약하기" href={store.links?.naverReservation} external disabled={!store.links?.naverReservation} />
+            <ActionLink label="리뷰/블로그 보기" href={store.links?.blogSearch || createNaverBlogSearchUrl(store.name)} external />
+            <ActionLink
+              label="공식 채널"
+              href={store.links?.website || store.links?.instagram}
+              external
+              disabled={!store.links?.website && !store.links?.instagram}
+            />
+            <ActionLink label="메뉴/가격표" href={store.links?.menu} external disabled={!store.links?.menu} />
+          </div>
+        </section>
+
+        <div className="mt-4">
           <FavoriteButton storeId={store.id} />
-          <Link
-            to={`/?floor=${store.floor}&store=${store.id}`}
-            className="flex min-h-12 items-center justify-center rounded-lg bg-accent px-4 text-sm font-black text-white"
-            aria-label={`${store.name} 지도에서 위치 보기`}
-          >
-            지도에서 위치 보기
-          </Link>
         </div>
       </section>
 
@@ -75,4 +82,63 @@ export default function StoreDetailPage() {
       />
     </main>
   );
+}
+
+function ActionLink({
+  label,
+  href,
+  external = false,
+  internal = false,
+  disabled = false,
+  variant = "secondary"
+}: {
+  label: string;
+  href?: string;
+  external?: boolean;
+  internal?: boolean;
+  disabled?: boolean;
+  variant?: "primary" | "secondary";
+}) {
+  const className = `flex min-h-11 items-center justify-center rounded-lg px-4 text-sm font-black ${
+    disabled
+      ? "cursor-not-allowed border border-slate-200 bg-slate-50 text-slate-400"
+      : variant === "primary"
+        ? "bg-accent text-white"
+        : "border border-slate-200 bg-white text-primary"
+  }`;
+
+  if (disabled || !href) {
+    return (
+      <button type="button" className={className} disabled>
+        {label}
+      </button>
+    );
+  }
+
+  if (internal) {
+    return (
+      <Link to={href} className={className}>
+        {label}
+      </Link>
+    );
+  }
+
+  return (
+    <a href={href} className={className} target={external ? "_blank" : undefined} rel={external ? "noreferrer" : undefined}>
+      {label}
+    </a>
+  );
+}
+
+function createPhoneHref(phone: string) {
+  const phoneNumber = phone.replace(/[^0-9+]/g, "");
+  return phoneNumber.length >= 7 ? `tel:${phoneNumber}` : "";
+}
+
+function createNaverSearchUrl(storeName: string) {
+  return `https://search.naver.com/search.naver?query=${encodeURIComponent(storeName)}`;
+}
+
+function createNaverBlogSearchUrl(storeName: string) {
+  return `https://search.naver.com/search.naver?where=blog&query=${encodeURIComponent(storeName)}`;
 }

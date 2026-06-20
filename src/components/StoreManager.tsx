@@ -13,8 +13,14 @@ type StoreManagerProps = {
   onSelectStore: (store: Store) => void;
 };
 
-type StoreForm = Omit<Store, "keywords"> & {
+type StoreForm = Omit<Store, "keywords" | "links"> & {
   keywordsText: string;
+  naverPlace: string;
+  naverReservation: string;
+  website: string;
+  instagram: string;
+  blogSearch: string;
+  menu: string;
 };
 
 const emptyForm: StoreForm = {
@@ -29,7 +35,13 @@ const emptyForm: StoreForm = {
   keywordsText: "",
   x: 50,
   y: 50,
-  image: ""
+  image: "",
+  naverPlace: "",
+  naverReservation: "",
+  website: "",
+  instagram: "",
+  blogSearch: "",
+  menu: ""
 };
 
 const adminPassword = import.meta.env.VITE_ADMIN_PASSWORD || "bifc2-admin";
@@ -68,7 +80,13 @@ export default function StoreManager({
     setForm({
       ...store,
       keywordsText: store.keywords.join(", "),
-      image: store.image ?? ""
+      image: store.image ?? "",
+      naverPlace: store.links?.naverPlace ?? "",
+      naverReservation: store.links?.naverReservation ?? "",
+      website: store.links?.website ?? "",
+      instagram: store.links?.instagram ?? "",
+      blogSearch: store.links?.blogSearch ?? "",
+      menu: store.links?.menu ?? ""
     });
   }, [editingId, stores]);
 
@@ -114,7 +132,15 @@ export default function StoreManager({
 
   const handleSubmit = (event: FormEvent<HTMLFormElement>) => {
     event.preventDefault();
-    const { keywordsText, ...storeForm } = form;
+    const { keywordsText, naverPlace, naverReservation, website, instagram, blogSearch, menu, ...storeForm } = form;
+    const links = compactLinks({
+      naverPlace,
+      naverReservation,
+      website,
+      instagram,
+      blogSearch,
+      menu
+    });
     const store: Store = {
       ...storeForm,
       id: isEditing ? storeForm.id : createStoreId(storeForm.name),
@@ -125,7 +151,8 @@ export default function StoreManager({
         .split(",")
         .map((keyword) => keyword.trim())
         .filter(Boolean),
-      image: storeForm.image?.trim() || undefined
+      image: storeForm.image?.trim() || undefined,
+      links
     };
 
     if (isEditing) {
@@ -316,6 +343,29 @@ export default function StoreManager({
                       placeholder="쉼표로 구분"
                     />
                     <TextField label="대표 이미지 URL" value={form.image ?? ""} onChange={(value) => updateField("image", value)} />
+                    <fieldset className="grid gap-3 rounded-lg border border-slate-200 p-3">
+                      <legend className="px-1 text-sm font-black text-primary">외부 링크</legend>
+                      <div className="grid gap-3 sm:grid-cols-2">
+                        <TextField
+                          label="네이버 플레이스 URL"
+                          value={form.naverPlace}
+                          onChange={(value) => updateField("naverPlace", value)}
+                        />
+                        <TextField
+                          label="네이버 예약 URL"
+                          value={form.naverReservation}
+                          onChange={(value) => updateField("naverReservation", value)}
+                        />
+                        <TextField label="공식 홈페이지 URL" value={form.website} onChange={(value) => updateField("website", value)} />
+                        <TextField label="인스타그램 URL" value={form.instagram} onChange={(value) => updateField("instagram", value)} />
+                        <TextField
+                          label="블로그/리뷰 검색 URL"
+                          value={form.blogSearch}
+                          onChange={(value) => updateField("blogSearch", value)}
+                        />
+                        <TextField label="메뉴/가격표 URL" value={form.menu} onChange={(value) => updateField("menu", value)} />
+                      </div>
+                    </fieldset>
                     <label className="grid gap-1 text-sm font-bold text-slate-700">
                       소개글
                       <textarea
@@ -424,6 +474,16 @@ function createStoreId(name: string) {
     .replace(/^-|-$/g, "");
 
   return `${slug || "store"}-${Date.now()}`;
+}
+
+function compactLinks(links: Store["links"]) {
+  if (!links) return {};
+
+  return Object.fromEntries(
+    Object.entries(links)
+      .map(([key, value]) => [key, typeof value === "string" ? value.trim() : ""])
+      .filter(([, value]) => value)
+  ) as Store["links"];
 }
 
 function clampPercent(value: number) {
