@@ -13,7 +13,6 @@ import type { Floor, Store } from "../types/store";
 import {
   createStore,
   deleteStore,
-  isSupabaseConfigured,
   loadStores,
   resetStores,
   updateStore
@@ -27,11 +26,9 @@ export default function HomePage() {
   const [selectedStore, setSelectedStore] = useState<Store | null>(null);
   const [storeItems, setStoreItems] = useState<Store[]>(defaultStores);
   const [storeError, setStoreError] = useState("");
-  const [isStoreLoading, setIsStoreLoading] = useState(true);
 
   useEffect(() => {
     const syncStores = () => {
-      setIsStoreLoading(true);
       loadStores(defaultStores)
         .then((nextStores) => {
           setStoreItems(nextStores);
@@ -40,8 +37,7 @@ export default function HomePage() {
         .catch((error: Error) => {
           setStoreItems(defaultStores);
           setStoreError(error.message);
-        })
-        .finally(() => setIsStoreLoading(false));
+        });
     };
 
     syncStores();
@@ -202,18 +198,12 @@ export default function HomePage() {
         </section>
       </div>
 
-      <section>
-        <div className="mb-3 grid gap-2">
-          <p className="rounded-lg border border-slate-200 bg-white px-4 py-3 text-sm font-bold text-slate-600">
-            데이터 저장소: {isSupabaseConfigured ? "Supabase DB" : "브라우저 localStorage"}
-            {isStoreLoading ? " · 불러오는 중" : ""}
+      <section className="grid gap-3 border-t border-slate-200 pt-3 sm:pt-4">
+        {storeError && (
+          <p className="rounded-lg border border-rose-200 bg-rose-50 px-4 py-3 text-sm font-bold text-rose-700">
+            {storeError}
           </p>
-          {storeError && (
-            <p className="rounded-lg border border-rose-200 bg-rose-50 px-4 py-3 text-sm font-bold text-rose-700">
-              {storeError}
-            </p>
-          )}
-        </div>
+        )}
         <StoreManager
           stores={visibleStoreItems}
           onCreate={handleCreateStore}
