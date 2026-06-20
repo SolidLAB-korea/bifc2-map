@@ -10,15 +10,19 @@ import { loadStores } from "../utils/storeRepository";
 export default function StoreDetailPage() {
   const { id } = useParams();
   const navigate = useNavigate();
-  const [storeItems, setStoreItems] = useState<Store[]>(defaultStores);
+  const [storeItems, setStoreItems] = useState<Store[]>([]);
+  const [isLoading, setIsLoading] = useState(true);
   const store = storeItems.find((item) => item.id === id);
 
   useEffect(() => {
     const syncStores = () => {
+      setIsLoading(true);
       loadStores(defaultStores)
         .then(setStoreItems)
-        .catch(() => setStoreItems(defaultStores));
+        .catch(() => setStoreItems(defaultStores))
+        .finally(() => setIsLoading(false));
     };
+
     syncStores();
     window.addEventListener("stores-updated", syncStores);
     return () => {
@@ -26,7 +30,17 @@ export default function StoreDetailPage() {
     };
   }, []);
 
-  if (!store || !floors.includes(store.floor as Floor)) {
+  if (isLoading) {
+    return (
+      <main className="app-container py-4">
+        <section className="rounded-lg border border-slate-200 bg-white p-5 text-sm font-bold text-slate-600 shadow-panel">
+          매장 정보를 불러오는 중입니다.
+        </section>
+      </main>
+    );
+  }
+
+  if (!id || !store || !floors.includes(store.floor as Floor)) {
     return <Navigate to="/" replace />;
   }
 

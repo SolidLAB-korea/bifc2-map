@@ -40,9 +40,9 @@ export default function StoreBottomSheet({ store, onClose }: StoreBottomSheetPro
           <Link
             to={`/stores/${store.id}`}
             className="flex min-h-12 items-center justify-center rounded-lg bg-accent px-4 text-sm font-black text-white"
-            aria-label={`${store.name} 상세 페이지로 이동`}
+            aria-label={`${store.name} 매장 정보로 이동`}
           >
-            상세 페이지
+            매장 정보
           </Link>
         </div>
       </article>

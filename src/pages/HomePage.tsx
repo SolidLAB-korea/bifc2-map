@@ -10,13 +10,7 @@ import StoreList from "../components/StoreList";
 import StoreManager from "../components/StoreManager";
 import { categories, floors, stores as defaultStores } from "../data/stores";
 import type { Floor, Store } from "../types/store";
-import {
-  createStore,
-  deleteStore,
-  loadStores,
-  resetStores,
-  updateStore
-} from "../utils/storeRepository";
+import { createStore, deleteStore, loadStores, resetStores, updateStore } from "../utils/storeRepository";
 
 export default function HomePage() {
   const [searchParams] = useSearchParams();
@@ -136,7 +130,10 @@ export default function HomePage() {
 
   return (
     <main className="app-container grid min-w-0 gap-2 py-2 sm:gap-4 sm:py-4">
-      <section className="min-w-0 overflow-hidden rounded-lg border border-slate-200 bg-white p-2.5 shadow-panel sm:p-4" aria-label="스퀘어가든 검색 및 층 선택">
+      <section
+        className="min-w-0 overflow-hidden rounded-lg border border-slate-200 bg-white p-2.5 shadow-panel sm:p-4"
+        aria-label="스퀘어가든 검색 및 층 선택"
+      >
         <h2 className="mb-2 text-base font-black text-primary sm:mb-3 sm:text-xl">BIFC2 스퀘어가든 안내지도</h2>
         <SearchBar value={query} onChange={setQuery} />
         <div className="mt-2 sm:mt-4">
@@ -158,7 +155,7 @@ export default function HomePage() {
           />
 
           {selectedStore && (
-            <aside className="hidden rounded-lg border border-slate-200 bg-white p-5 shadow-panel lg:block" aria-label="선택한 매장 상세 정보">
+            <aside className="hidden rounded-lg border border-slate-200 bg-white p-5 shadow-panel lg:block" aria-label="선택한 매장 정보">
               <div className="mb-4 flex items-start justify-between gap-3">
                 <div className="min-w-0">
                   <p className="text-sm font-black text-accent">{selectedStore.category}</p>
@@ -180,9 +177,9 @@ export default function HomePage() {
                 <Link
                   to={`/stores/${selectedStore.id}`}
                   className="flex min-h-12 items-center justify-center rounded-lg bg-accent px-4 text-sm font-black text-white"
-                  aria-label={`${selectedStore.name} 상세 페이지로 이동`}
+                  aria-label={`${selectedStore.name} 매장 정보로 이동`}
                 >
-                  상세 페이지
+                  매장 정보
                 </Link>
               </div>
             </aside>
