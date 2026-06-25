@@ -1,13 +1,16 @@
 import { NavLink } from "react-router-dom";
+import { useI18n } from "../i18n";
 
 const navItems = [
-  { to: "/", label: "지도", icon: "⌖" },
-  { to: "/favorites", label: "즐겨찾기", icon: "★" }
-];
+  { to: "/", labelKey: "map", icon: "⌖" },
+  { to: "/favorites", labelKey: "favorites", icon: "★" }
+] as const;
 
 export default function BottomNav() {
+  const { t } = useI18n();
+
   return (
-    <nav className="fixed inset-x-0 bottom-0 z-30 border-t border-slate-200 bg-white safe-bottom lg:hidden" aria-label="하단 네비게이션">
+    <nav className="fixed inset-x-0 bottom-0 z-30 border-t border-slate-200 bg-white safe-bottom lg:hidden" aria-label={t("bottomNav")}>
       <div className="grid grid-cols-2">
         {navItems.map((item) => (
           <NavLink
@@ -18,12 +21,12 @@ export default function BottomNav() {
                 isActive ? "text-accent" : "text-slate-500"
               }`
             }
-            aria-label={`${item.label} 페이지로 이동`}
+            aria-label={`${t(item.labelKey)} page`}
           >
             <span className="text-xl leading-none" aria-hidden="true">
               {item.icon}
             </span>
-            {item.label}
+            {t(item.labelKey)}
           </NavLink>
         ))}
       </div>

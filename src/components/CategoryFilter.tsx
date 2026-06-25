@@ -1,3 +1,5 @@
+import { useI18n } from "../i18n";
+
 type CategoryFilterProps = {
   categories: string[];
   selectedCategory: string;
@@ -5,21 +7,23 @@ type CategoryFilterProps = {
 };
 
 export default function CategoryFilter({ categories, selectedCategory, onSelect }: CategoryFilterProps) {
+  const { categoryLabel, t } = useI18n();
+
   return (
-    <div className="min-w-0" aria-label="카테고리 필터">
+    <div className="min-w-0" aria-label={t("categoryFilter")}>
       <label className="sr-only" htmlFor="mobile-category-filter">
-        카테고리 선택
+        {t("categorySelect")}
       </label>
       <select
         id="mobile-category-filter"
         value={selectedCategory}
         onChange={(event) => onSelect(event.target.value)}
         className="block h-10 w-full min-w-0 rounded-lg border border-slate-200 bg-white px-3 text-sm font-bold text-slate-800 outline-none focus:border-accent focus:ring-2 focus:ring-accent/20 sm:hidden"
-        aria-label="카테고리 선택"
+        aria-label={t("categorySelect")}
       >
         {categories.map((category) => (
           <option key={category} value={category}>
-            {category}
+            {categoryLabel(category)}
           </option>
         ))}
       </select>
@@ -35,10 +39,10 @@ export default function CategoryFilter({ categories, selectedCategory, onSelect 
               className={`min-h-11 rounded-lg border px-4 text-sm font-bold ${
                 isSelected ? "border-primary bg-primary text-white" : "border-slate-200 bg-white text-slate-700"
               }`}
-              aria-label={`${category} 카테고리 보기`}
+              aria-label={`${categoryLabel(category)} ${t("categoryFilter")}`}
               aria-pressed={isSelected}
             >
-              {category}
+              {categoryLabel(category)}
             </button>
           );
         })}

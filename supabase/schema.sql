@@ -12,11 +12,15 @@ create table if not exists public.stores (
   y numeric not null default 50,
   image text,
   links jsonb not null default '{}'::jsonb,
+  translations jsonb not null default '{}'::jsonb,
   updated_at timestamptz not null default now()
 );
 
 alter table public.stores
 add column if not exists links jsonb not null default '{}'::jsonb;
+
+alter table public.stores
+add column if not exists translations jsonb not null default '{}'::jsonb;
 
 create or replace function public.set_store_updated_at()
 returns trigger

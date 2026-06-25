@@ -4,10 +4,12 @@ import FavoriteButton from "../components/FavoriteButton";
 import MapView from "../components/MapView";
 import { StoreFacts } from "../components/StoreBottomSheet";
 import { floors, stores as defaultStores } from "../data/stores";
+import { useI18n } from "../i18n";
 import type { Floor, Store } from "../types/store";
 import { loadStores } from "../utils/storeRepository";
 
 export default function StoreDetailPage() {
+  const { categoryLabel, storeText, t } = useI18n();
   const { id } = useParams();
   const navigate = useNavigate();
   const [storeItems, setStoreItems] = useState<Store[]>([]);
@@ -34,7 +36,7 @@ export default function StoreDetailPage() {
     return (
       <main className="app-container py-4">
         <section className="rounded-lg border border-slate-200 bg-white p-5 text-sm font-bold text-slate-600 shadow-panel">
-          매장 정보를 불러오는 중입니다.
+          {t("loadingStore")}
         </section>
       </main>
     );
@@ -54,31 +56,31 @@ export default function StoreDetailPage() {
     <main className="app-container grid gap-4 py-4 lg:grid-cols-[420px_minmax(0,1fr)]">
       <section className="rounded-lg border border-slate-200 bg-white p-5 shadow-panel">
         {store.image && (
-          <img src={store.image} alt={`${store.name} 대표 이미지`} className="mb-4 h-44 w-full rounded-lg object-cover" />
+          <img src={store.image} alt={`${storeText(store, "name")} ${t("representativeImage")}`} className="mb-4 h-44 w-full rounded-lg object-cover" />
         )}
-        <p className="text-sm font-black text-accent">{store.category}</p>
-        <h2 className="mt-1 break-keep text-3xl font-black text-primary">{store.name}</h2>
-        <p className="mt-4 rounded-lg bg-appbg p-4 text-sm leading-6 text-slate-700">{store.description}</p>
+        <p className="text-sm font-black text-accent">{categoryLabel(store.category)}</p>
+        <h2 className="mt-1 break-keep text-3xl font-black text-primary">{storeText(store, "name")}</h2>
+        <p className="mt-4 rounded-lg bg-appbg p-4 text-sm leading-6 text-slate-700">{storeText(store, "description")}</p>
 
         <div className="mt-4">
           <StoreFacts store={store} />
         </div>
 
-        <section className="mt-4 rounded-lg border border-slate-200 p-3" aria-label="매장 바로가기">
-          <h3 className="text-sm font-black text-primary">바로가기</h3>
+        <section className="mt-4 rounded-lg border border-slate-200 p-3" aria-label={t("actions")}>
+          <h3 className="text-sm font-black text-primary">{t("actions")}</h3>
           <div className="mt-3 grid gap-2">
-            <ActionLink label="지도에서 위치 보기" href={`/?floor=${store.floor}&store=${store.id}`} internal variant="primary" />
-            <ActionLink label="전화하기" href={createPhoneHref(store.phone)} disabled={!createPhoneHref(store.phone)} />
-            <ActionLink label="네이버 플레이스" href={store.links?.naverPlace || createNaverSearchUrl(store.name)} external />
-            <ActionLink label="예약하기" href={store.links?.naverReservation} external disabled={!store.links?.naverReservation} />
-            <ActionLink label="리뷰/블로그 보기" href={store.links?.blogSearch || createNaverBlogSearchUrl(store.name)} external />
+            <ActionLink label={t("viewOnMap")} href={`/?floor=${store.floor}&store=${store.id}`} internal variant="primary" />
+            <ActionLink label={t("call")} href={createPhoneHref(store.phone)} disabled={!createPhoneHref(store.phone)} />
+            <ActionLink label={t("naverPlace")} href={store.links?.naverPlace || createNaverSearchUrl(storeText(store, "name"))} external />
+            <ActionLink label={t("reservation")} href={store.links?.naverReservation} external disabled={!store.links?.naverReservation} />
+            <ActionLink label={t("reviews")} href={store.links?.blogSearch || createNaverBlogSearchUrl(storeText(store, "name"))} external />
             <ActionLink
-              label="공식 채널"
+              label={t("officialChannel")}
               href={store.links?.website || store.links?.instagram}
               external
               disabled={!store.links?.website && !store.links?.instagram}
             />
-            <ActionLink label="메뉴/가격표" href={store.links?.menu} external disabled={!store.links?.menu} />
+            <ActionLink label={t("menu")} href={store.links?.menu} external disabled={!store.links?.menu} />
           </div>
         </section>
 

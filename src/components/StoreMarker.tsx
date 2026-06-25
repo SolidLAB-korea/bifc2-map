@@ -1,4 +1,5 @@
 import type { Store } from "../types/store";
+import { useI18n } from "../i18n";
 
 type StoreMarkerProps = {
   store: Store;
@@ -94,8 +95,10 @@ function createIconDataUri(iconType: IconType) {
 }
 
 export default function StoreMarker({ store, isSelected, isDimmed = false, onSelect }: StoreMarkerProps) {
+  const { storeText } = useI18n();
   const labelPositionClass = store.y > 76 ? "bottom-10" : "top-10";
   const iconType = categoryIconTypes[store.category] ?? "service";
+  const storeName = storeText(store, "name");
 
   return (
     <button
@@ -105,8 +108,8 @@ export default function StoreMarker({ store, isSelected, isDimmed = false, onSel
         isSelected ? "scale-[1.15] bg-accent ring-[3px] ring-amber-300" : markerColors[iconType]
       } ${isDimmed ? "opacity-30" : "opacity-100"}`}
       style={{ left: `${store.x}%`, top: `${store.y}%` }}
-      aria-label={`${store.name} 상세 정보 보기`}
-      title={store.name}
+      aria-label={`${storeName} 상세 정보 보기`}
+      title={storeName}
     >
       <img className="h-[18px] w-[18px]" src={createIconDataUri(iconType)} alt="" aria-hidden="true" />
       <span
@@ -114,7 +117,7 @@ export default function StoreMarker({ store, isSelected, isDimmed = false, onSel
           isSelected ? "md:block" : ""
         }`}
       >
-        {store.name}
+        {storeName}
       </span>
     </button>
   );

@@ -12,6 +12,7 @@ export type Store = {
   y: number;
   image?: string;
   links?: StoreLinks;
+  translations?: StoreTranslations;
 };
 
 export type StoreLinks = {
@@ -21,6 +22,18 @@ export type StoreLinks = {
   instagram?: string;
   blogSearch?: string;
   menu?: string;
+};
+
+export type StoreTranslations = {
+  en?: StoreTranslation;
+};
+
+export type StoreTranslation = {
+  name?: string;
+  location?: string;
+  hours?: string;
+  description?: string;
+  keywords?: string[];
 };
 
 export type Floor = "B1" | "1F" | "2F" | "3F";

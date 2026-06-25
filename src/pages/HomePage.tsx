@@ -9,10 +9,12 @@ import StoreBottomSheet, { StoreFacts } from "../components/StoreBottomSheet";
 import StoreList from "../components/StoreList";
 import StoreManager from "../components/StoreManager";
 import { categories, floors, stores as defaultStores } from "../data/stores";
+import { useI18n } from "../i18n";
 import type { Floor, Store } from "../types/store";
 import { createStore, deleteStore, loadStores, resetStores, updateStore } from "../utils/storeRepository";
 
 export default function HomePage() {
+  const { categoryLabel, storeText, t } = useI18n();
   const [searchParams] = useSearchParams();
   const [query, setQuery] = useState("");
   const [selectedCategory, setSelectedCategory] = useState("전체");
@@ -64,7 +66,18 @@ export default function HomePage() {
     return visibleStores.filter((store) => {
       const categoryMatched = selectedCategory === "전체" || store.category === selectedCategory;
       const floorMatched = store.floor === selectedFloor;
-      const searchTarget = [store.name, store.category, store.floor, store.location, ...store.keywords]
+      const searchTarget = [
+        store.name,
+        store.translations?.en?.name,
+        store.category,
+        categoryLabel(store.category),
+        store.floor,
+        store.location,
+        store.translations?.en?.location,
+        ...store.keywords,
+        ...(store.translations?.en?.keywords ?? [])
+      ]
+        .filter(Boolean)
         .join(" ")
         .toLowerCase();
       const queryMatched = normalizedQuery.length === 0 || searchTarget.includes(normalizedQuery);
@@ -132,9 +145,9 @@ export default function HomePage() {
     <main className="app-container grid min-w-0 gap-2 py-2 sm:gap-4 sm:py-4">
       <section
         className="min-w-0 overflow-hidden rounded-lg border border-slate-200 bg-white p-2.5 shadow-panel sm:p-4"
-        aria-label="스퀘어가든 검색 및 층 선택"
+        aria-label={t("searchAria")}
       >
-        <h2 className="mb-2 text-base font-black text-primary sm:mb-3 sm:text-xl">BIFC2 스퀘어가든 안내지도</h2>
+        <h2 className="mb-2 text-base font-black text-primary sm:mb-3 sm:text-xl">BIFC2 {t("title")}</h2>
         <SearchBar value={query} onChange={setQuery} />
         <div className="mt-2 sm:mt-4">
           <CategoryFilter categories={categories} selectedCategory={selectedCategory} onSelect={setSelectedCategory} />
@@ -155,41 +168,43 @@ export default function HomePage() {
           />
 
           {selectedStore && (
-            <aside className="hidden rounded-lg border border-slate-200 bg-white p-5 shadow-panel lg:block" aria-label="선택한 매장 정보">
+            <aside className="hidden rounded-lg border border-slate-200 bg-white p-5 shadow-panel lg:block" aria-label={t("selectedStore")}>
               <div className="mb-4 flex items-start justify-between gap-3">
                 <div className="min-w-0">
-                  <p className="text-sm font-black text-accent">{selectedStore.category}</p>
-                  <h2 className="break-keep text-2xl font-black text-primary">{selectedStore.name}</h2>
+                  <p className="text-sm font-black text-accent">{categoryLabel(selectedStore.category)}</p>
+                  <h2 className="break-keep text-2xl font-black text-primary">{storeText(selectedStore, "name")}</h2>
                 </div>
                 <FavoriteButton storeId={selectedStore.id} compact />
               </div>
               <StoreFacts store={selectedStore} />
-              <p className="mt-4 rounded-lg bg-appbg p-4 text-sm leading-6 text-slate-700">{selectedStore.description}</p>
+              <p className="mt-4 rounded-lg bg-appbg p-4 text-sm leading-6 text-slate-700">{storeText(selectedStore, "description")}</p>
               <div className="mt-4 grid grid-cols-2 gap-2">
                 <button
                   type="button"
                   onClick={() => setSelectedFloor(selectedStore.floor as Floor)}
                   className="min-h-12 rounded-lg bg-primary px-4 text-sm font-black text-white"
-                  aria-label="지도에서 위치 보기"
+                  aria-label={t("viewOnMap")}
                 >
-                  지도에서 위치 보기
+                  {t("viewOnMap")}
                 </button>
                 <Link
                   to={`/stores/${selectedStore.id}`}
                   className="flex min-h-12 items-center justify-center rounded-lg bg-accent px-4 text-sm font-black text-white"
-                  aria-label={`${selectedStore.name} 매장 정보로 이동`}
+                  aria-label={`${storeText(selectedStore, "name")} ${t("storeInfo")}`}
                 >
-                  매장 정보
+                  {t("storeInfo")}
                 </Link>
               </div>
             </aside>
           )}
         </section>
 
-        <section className="rounded-lg border border-slate-200 bg-white p-4 shadow-panel lg:sticky lg:top-24" aria-label="검색 결과">
+        <section className="rounded-lg border border-slate-200 bg-white p-4 shadow-panel lg:sticky lg:top-24" aria-label={t("searchResults")}>
           <div className="mb-3 flex items-center justify-between gap-3">
-            <h2 className="text-lg font-black text-primary">검색 결과</h2>
-            <span className="rounded-full bg-blue-50 px-3 py-1 text-sm font-bold text-accent">{filteredStores.length}곳</span>
+            <h2 className="text-lg font-black text-primary">{t("searchResults")}</h2>
+            <span className="rounded-full bg-blue-50 px-3 py-1 text-sm font-bold text-accent">
+              {filteredStores.length} {t("placesCount")}
+            </span>
           </div>
           <StoreList stores={filteredStores} selectedStoreId={selectedStore?.id} onStoreSelect={handleStoreSelect} />
         </section>

@@ -1,5 +1,6 @@
 import { useEffect, useMemo, useState, type FormEvent } from "react";
 import { categories, floors } from "../data/stores";
+import { useI18n } from "../i18n";
 import type { Floor, Store } from "../types/store";
 import { isAdminSignedIn, setAdminSignedIn } from "../utils/storage";
 import { isSupabaseConfigured } from "../utils/storeRepository";
@@ -13,8 +14,13 @@ type StoreManagerProps = {
   onSelectStore: (store: Store) => void;
 };
 
-type StoreForm = Omit<Store, "keywords" | "links"> & {
+type StoreForm = Omit<Store, "keywords" | "links" | "translations"> & {
   keywordsText: string;
+  nameEn: string;
+  locationEn: string;
+  hoursEn: string;
+  descriptionEn: string;
+  keywordsEnText: string;
   naverPlace: string;
   naverReservation: string;
   website: string;
@@ -33,6 +39,11 @@ const emptyForm: StoreForm = {
   phone: "",
   description: "",
   keywordsText: "",
+  nameEn: "",
+  locationEn: "",
+  hoursEn: "",
+  descriptionEn: "",
+  keywordsEnText: "",
   x: 50,
   y: 50,
   image: "",
@@ -54,6 +65,7 @@ export default function StoreManager({
   onReset,
   onSelectStore
 }: StoreManagerProps) {
+  const { t } = useI18n();
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [isSignedIn, setIsSignedIn] = useState(() => isAdminSignedIn());
   const [password, setPassword] = useState("");
@@ -80,6 +92,11 @@ export default function StoreManager({
     setForm({
       ...store,
       keywordsText: store.keywords.join(", "),
+      nameEn: store.translations?.en?.name ?? "",
+      locationEn: store.translations?.en?.location ?? "",
+      hoursEn: store.translations?.en?.hours ?? "",
+      descriptionEn: store.translations?.en?.description ?? "",
+      keywordsEnText: store.translations?.en?.keywords?.join(", ") ?? "",
       image: store.image ?? "",
       naverPlace: store.links?.naverPlace ?? "",
       naverReservation: store.links?.naverReservation ?? "",
@@ -132,7 +149,21 @@ export default function StoreManager({
 
   const handleSubmit = (event: FormEvent<HTMLFormElement>) => {
     event.preventDefault();
-    const { keywordsText, naverPlace, naverReservation, website, instagram, blogSearch, menu, ...storeForm } = form;
+    const {
+      keywordsText,
+      nameEn,
+      locationEn,
+      hoursEn,
+      descriptionEn,
+      keywordsEnText,
+      naverPlace,
+      naverReservation,
+      website,
+      instagram,
+      blogSearch,
+      menu,
+      ...storeForm
+    } = form;
     const links = compactLinks({
       naverPlace,
       naverReservation,
@@ -140,6 +171,16 @@ export default function StoreManager({
       instagram,
       blogSearch,
       menu
+    });
+    const translations = compactTranslations({
+      name: nameEn,
+      location: locationEn,
+      hours: hoursEn,
+      description: descriptionEn,
+      keywords: keywordsEnText
+        .split(",")
+        .map((keyword) => keyword.trim())
+        .filter(Boolean)
     });
     const store: Store = {
       ...storeForm,
@@ -152,7 +193,8 @@ export default function StoreManager({
         .map((keyword) => keyword.trim())
         .filter(Boolean),
       image: storeForm.image?.trim() || undefined,
-      links
+      links,
+      translations
     };
 
     if (isEditing) {
@@ -201,7 +243,7 @@ export default function StoreManager({
         aria-haspopup="dialog"
         aria-expanded={isModalOpen}
       >
-        관리자 메뉴 열기
+        {t("adminMenu")}
       </button>
 
       {isModalOpen && (
@@ -344,6 +386,28 @@ export default function StoreManager({
                     />
                     <TextField label="대표 이미지 URL" value={form.image ?? ""} onChange={(value) => updateField("image", value)} />
                     <fieldset className="grid gap-3 rounded-lg border border-slate-200 p-3">
+                      <legend className="px-1 text-sm font-black text-primary">영문 정보</legend>
+                      <div className="grid gap-3 sm:grid-cols-2">
+                        <TextField label="영문 매장명" value={form.nameEn} onChange={(value) => updateField("nameEn", value)} />
+                        <TextField label="영문 위치 설명" value={form.locationEn} onChange={(value) => updateField("locationEn", value)} />
+                        <TextField label="영문 영업시간" value={form.hoursEn} onChange={(value) => updateField("hoursEn", value)} />
+                        <TextField
+                          label="영문 키워드"
+                          value={form.keywordsEnText}
+                          onChange={(value) => updateField("keywordsEnText", value)}
+                          placeholder="쉼표로 구분"
+                        />
+                      </div>
+                      <label className="grid gap-1 text-sm font-bold text-slate-700">
+                        영문 소개글
+                        <textarea
+                          value={form.descriptionEn}
+                          onChange={(event) => updateField("descriptionEn", event.target.value)}
+                          className="min-h-24 rounded-lg border border-slate-200 px-3 py-2 text-slate-900 outline-none focus:border-accent"
+                        />
+                      </label>
+                    </fieldset>
+                    <fieldset className="grid gap-3 rounded-lg border border-slate-200 p-3">
                       <legend className="px-1 text-sm font-black text-primary">외부 링크</legend>
                       <div className="grid gap-3 sm:grid-cols-2">
                         <TextField
@@ -484,6 +548,21 @@ function compactLinks(links: Store["links"]) {
       .map(([key, value]) => [key, typeof value === "string" ? value.trim() : ""])
       .filter(([, value]) => value)
   ) as Store["links"];
+}
+
+function compactTranslations(translation: NonNullable<Store["translations"]>["en"]) {
+  if (!translation) return {};
+
+  const en = {
+    name: translation.name?.trim(),
+    location: translation.location?.trim(),
+    hours: translation.hours?.trim(),
+    description: translation.description?.trim(),
+    keywords: translation.keywords?.filter(Boolean)
+  };
+
+  const hasText = Boolean(en.name || en.location || en.hours || en.description || en.keywords?.length);
+  return hasText ? { en } : {};
 }
 
 function clampPercent(value: number) {

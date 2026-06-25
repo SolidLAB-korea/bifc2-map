@@ -109,6 +109,10 @@ function normalizeStore(store: Store): Store {
     ...store,
     keywords: Array.isArray(store.keywords) ? store.keywords : [],
     links: store.links && typeof store.links === "object" && !Array.isArray(store.links) ? store.links : {},
+    translations:
+      store.translations && typeof store.translations === "object" && !Array.isArray(store.translations)
+        ? store.translations
+        : {},
     image: store.image ?? undefined,
     x: Number(store.x),
     y: Number(store.y)
