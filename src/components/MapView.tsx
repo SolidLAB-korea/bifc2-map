@@ -10,11 +10,13 @@ type MapViewProps = {
   onStoreSelect: (store: Store) => void;
 };
 
+const mapAssetVersion = "20260625-floor-upgrade";
+
 const floorImageMap: Record<Floor, string> = {
-  B1: `${import.meta.env.BASE_URL}maps/floor-b1.png`,
-  "1F": `${import.meta.env.BASE_URL}maps/floor-1f.png`,
-  "2F": `${import.meta.env.BASE_URL}maps/floor-2f.png`,
-  "3F": `${import.meta.env.BASE_URL}maps/floor-3f.png`
+  B1: `${import.meta.env.BASE_URL}maps/floor-b1.png?v=${mapAssetVersion}`,
+  "1F": `${import.meta.env.BASE_URL}maps/floor-1f.png?v=${mapAssetVersion}`,
+  "2F": `${import.meta.env.BASE_URL}maps/floor-2f.png?v=${mapAssetVersion}`,
+  "3F": `${import.meta.env.BASE_URL}maps/floor-3f.png?v=${mapAssetVersion}`
 };
 
 const floorAspectRatioMap: Record<Floor, string> = {
