@@ -11,6 +11,7 @@ export type Store = {
   x: number;
   y: number;
   image?: string;
+  routeAnchorId?: string;
   links?: StoreLinks;
   translations?: StoreTranslations;
 };

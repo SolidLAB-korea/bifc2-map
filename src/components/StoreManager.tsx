@@ -2,6 +2,7 @@ import { useEffect, useMemo, useState, type FormEvent } from "react";
 import { categories, floors } from "../data/stores";
 import { useI18n } from "../i18n";
 import type { Floor, Store } from "../types/store";
+import { getRouteNodeOptions } from "../utils/indoorRoute";
 import { isAdminSignedIn, setAdminSignedIn } from "../utils/storage";
 import { isSupabaseConfigured } from "../utils/storeRepository";
 
@@ -47,6 +48,7 @@ const emptyForm: StoreForm = {
   x: 50,
   y: 50,
   image: "",
+  routeAnchorId: "",
   naverPlace: "",
   naverReservation: "",
   website: "",
@@ -75,6 +77,7 @@ export default function StoreManager({
 
   const editableCategories = useMemo(() => categories.filter((category) => category !== "전체"), []);
   const isEditing = editingId.length > 0;
+  const routeNodeOptions = useMemo(() => getRouteNodeOptions(form.floor as Floor), [form.floor]);
 
   useEffect(() => {
     if (!editingId) {
@@ -98,6 +101,7 @@ export default function StoreManager({
       descriptionEn: store.translations?.en?.description ?? "",
       keywordsEnText: store.translations?.en?.keywords?.join(", ") ?? "",
       image: store.image ?? "",
+      routeAnchorId: store.routeAnchorId ?? "",
       naverPlace: store.links?.naverPlace ?? "",
       naverReservation: store.links?.naverReservation ?? "",
       website: store.links?.website ?? "",
@@ -193,6 +197,7 @@ export default function StoreManager({
         .map((keyword) => keyword.trim())
         .filter(Boolean),
       image: storeForm.image?.trim() || undefined,
+      routeAnchorId: storeForm.routeAnchorId?.trim() || undefined,
       links,
       translations
     };
@@ -372,6 +377,22 @@ export default function StoreManager({
                       <NumberField label="X 좌표 (%)" value={form.x} onChange={(value) => updateField("x", value)} />
                       <NumberField label="Y 좌표 (%)" value={form.y} onChange={(value) => updateField("y", value)} />
                     </div>
+
+                    <label className="grid gap-1 text-sm font-bold text-slate-700">
+                      경로 연결 지점
+                      <select
+                        value={form.routeAnchorId ?? ""}
+                        onChange={(event) => updateField("routeAnchorId", event.target.value)}
+                        className="min-h-11 rounded-lg border border-slate-200 px-3 text-slate-900"
+                      >
+                        <option value="">자동 선택</option>
+                        {routeNodeOptions.map((routeNode) => (
+                          <option key={routeNode.id} value={routeNode.id}>
+                            {routeNode.labelKo}
+                          </option>
+                        ))}
+                      </select>
+                    </label>
 
                     <TextField label="위치 설명" value={form.location} onChange={(value) => updateField("location", value)} />
                     <div className="grid gap-3 sm:grid-cols-2">
