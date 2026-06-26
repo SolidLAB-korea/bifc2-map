@@ -101,6 +101,7 @@ export default function StoreDetailPage() {
         selectedStoreId={store.id}
         highlightedStoreIds={[store.id]}
         routePoints={route.points}
+        routeStartLabel={language === "en" ? route.startLabelEn : route.startLabelKo}
         onStoreSelect={handleStoreSelect}
       />
     </main>

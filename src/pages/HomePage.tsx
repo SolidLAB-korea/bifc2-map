@@ -91,6 +91,8 @@ export default function HomePage() {
   const floorStores = visibleStoreItems.filter((store) => store.floor === selectedFloor);
   const selectedRoute = selectedStore ? createIndoorRoute(selectedStore) : null;
   const routePoints = selectedRoute?.floor === selectedFloor ? selectedRoute.points : undefined;
+  const routeStartLabel =
+    selectedRoute?.floor === selectedFloor ? (language === "en" ? selectedRoute.startLabelEn : selectedRoute.startLabelKo) : undefined;
 
   const handleStoreSelect = (store: Store) => {
     setSelectedFloor(store.floor as Floor);
@@ -168,6 +170,7 @@ export default function HomePage() {
             selectedStoreId={selectedStore?.id}
             highlightedStoreIds={filteredStores.map((store) => store.id)}
             routePoints={routePoints}
+            routeStartLabel={routeStartLabel}
             onStoreSelect={handleStoreSelect}
           />
 

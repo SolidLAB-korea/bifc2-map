@@ -10,6 +10,7 @@ type MapViewProps = {
   selectedStoreId?: string;
   highlightedStoreIds?: string[];
   routePoints?: RoutePoint[];
+  routeStartLabel?: string;
   onStoreSelect: (store: Store) => void;
 };
 
@@ -35,6 +36,7 @@ export default function MapView({
   selectedStoreId,
   highlightedStoreIds,
   routePoints,
+  routeStartLabel,
   onStoreSelect
 }: MapViewProps) {
   const [failedImages, setFailedImages] = useState<Record<string, boolean>>({});
@@ -72,7 +74,7 @@ export default function MapView({
           {showPlaceholder && <PlaceholderMap floor={floor} />}
 
           <div className="absolute inset-0">
-            {routePoints && <RouteOverlay points={routePoints} />}
+            {routePoints && <RouteOverlay points={routePoints} startLabel={routeStartLabel} />}
             {stores.map((store) => (
               <StoreMarker
                 key={store.id}

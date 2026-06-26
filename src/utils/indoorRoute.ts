@@ -8,6 +8,8 @@ export type RoutePoint = {
 export type IndoorRoute = {
   floor: Floor;
   points: RoutePoint[];
+  startLabelKo: string;
+  startLabelEn: string;
   instructionKo: string;
   instructionEn: string;
 };
@@ -87,6 +89,8 @@ export function createIndoorRoute(store: Store): IndoorRoute {
     return {
       floor,
       points,
+      startLabelKo: "출발: 안내데스크",
+      startLabelEn: "Start: Information Desk",
       instructionKo: "1층 안내데스크에서 출발해 파란색 선이 표시하는 통로를 따라 이동하세요.",
       instructionEn: "Start from the 1F information desk and follow the blue route along the corridor."
     };
@@ -95,6 +99,8 @@ export function createIndoorRoute(store: Store): IndoorRoute {
   return {
     floor,
     points,
+    startLabelKo: "출발: 에스컬레이터",
+    startLabelEn: "Start: Escalator",
     instructionKo: `1층 안내데스크에서 에스컬레이터로 이동해 ${floor}로 올라간 뒤, 해당 층의 에스컬레이터에서 파란색 선을 따라 이동하세요.`,
     instructionEn: `From the 1F information desk, take the escalator to ${floor}, then follow the blue route from the escalator on that floor.`
   };
