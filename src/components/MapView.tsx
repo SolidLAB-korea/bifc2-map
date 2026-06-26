@@ -25,9 +25,9 @@ const floorImageMap: Record<Floor, string> = {
 
 const floorAspectRatioMap: Record<Floor, string> = {
   B1: "16 / 9",
-  "1F": "811 / 752",
-  "2F": "887 / 730",
-  "3F": "840 / 741"
+  "1F": "1305 / 1205",
+  "2F": "1382 / 1138",
+  "3F": "1335 / 1178"
 };
 
 export default function MapView({

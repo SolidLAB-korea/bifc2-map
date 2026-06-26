@@ -23,7 +23,13 @@ export type RouteNode = {
 };
 
 const infoDeskNodeId = "info-desk";
-const verticalAccessNodeId = "vertical-access";
+
+const floorStartNodeMap: Record<Floor, string> = {
+  B1: "vertical-access",
+  "1F": infoDeskNodeId,
+  "2F": "escalator-2f",
+  "3F": "escalator-3f"
+};
 
 const floorGraphs: Record<Floor, RouteNode[]> = {
   B1: [
@@ -36,12 +42,13 @@ const floorGraphs: Record<Floor, RouteNode[]> = {
     node("south-west", "남서측 복도", "Southwest Corridor", 30, 82, ["info-desk", "south-center", "west-hall"]),
     node("south-center", "남측 중앙 복도", "South Central Corridor", 44, 82, ["south-west", "south-east", "center-lobby"]),
     node("south-east", "남동측 복도", "Southeast Corridor", 62, 82, ["south-center", "east-hall"]),
-    node("west-hall", "서측 복도", "West Hall", 30, 58, ["south-west", "north-west", "center-lobby"]),
+    node("west-hall", "서측 복도", "West Hall", 30, 58, ["south-west", "north-west", "vertical-access", "center-lobby"]),
     node("north-west", "북서측 복도", "Northwest Corridor", 30, 40, ["west-hall", "vertical-access"]),
     node("vertical-access", "중앙 엘리베이터/에스컬레이터 홀", "Central Elevator/Escalator Hall", 50, 25, [
       "north-west",
       "center-lobby",
-      "north-east"
+      "north-east",
+      "west-hall"
     ]),
     node("center-lobby", "중앙 로비", "Central Lobby", 50, 58, ["vertical-access", "west-hall", "south-center", "east-hall"]),
     node("north-east", "북동측 복도", "Northeast Corridor", 64, 40, ["vertical-access", "east-hall"]),
@@ -49,24 +56,27 @@ const floorGraphs: Record<Floor, RouteNode[]> = {
     node("east-shops", "동측 매장 앞 통로", "East Shops Corridor", 78, 72, ["east-hall"])
   ],
   "2F": [
-    node("vertical-access", "에스컬레이터", "Escalator", 42, 51, ["center-lobby", "north-east"]),
-    node("center-lobby", "중앙 복도", "Central Corridor", 50, 55, ["vertical-access", "west-hall", "east-hall", "south-center"]),
-    node("west-hall", "서측 복도", "West Hall", 34, 55, ["center-lobby", "west-lounge"]),
-    node("west-lounge", "서측 라운지 앞", "West Lounge", 28, 42, ["west-hall"]),
-    node("east-hall", "동측 복도", "East Hall", 66, 55, ["center-lobby", "north-east", "east-clinic"]),
-    node("north-east", "북동측 복도", "Northeast Corridor", 70, 40, ["vertical-access", "east-hall"]),
-    node("east-clinic", "메디컬 구역 앞", "Medical Area", 76, 48, ["east-hall"]),
-    node("south-center", "남측 중앙 복도", "South Central Corridor", 50, 72, ["center-lobby", "south-east", "south-west"]),
-    node("south-west", "남서측 복도", "Southwest Corridor", 38, 72, ["south-center"]),
-    node("south-east", "남동측 복도", "Southeast Corridor", 68, 72, ["south-center"])
+    node("escalator-2f", "에스컬레이터", "Escalator", 87, 15, ["north-east-entry"]),
+    node("north-east-entry", "북동측 진입 통로", "Northeast Entry Corridor", 82, 22, ["escalator-2f", "north-east-curve"]),
+    node("north-east-curve", "북동측 곡선 통로", "Northeast Curved Corridor", 76, 34, ["north-east-entry", "east-hall"]),
+    node("east-hall", "동측 복도", "East Hall", 70, 47, ["north-east-curve", "center-lobby", "east-clinic", "south-east"]),
+    node("center-lobby", "중앙 복도", "Central Corridor", 55, 53, ["east-hall", "west-hall", "south-center"]),
+    node("west-hall", "서측 복도", "West Hall", 36, 54, ["center-lobby", "west-lounge", "south-west"]),
+    node("west-lounge", "서측 라운지 앞", "West Lounge", 29, 42, ["west-hall"]),
+    node("east-clinic", "메디컬 구역 앞", "Medical Area", 77, 50, ["east-hall"]),
+    node("south-center", "남측 중앙 복도", "South Central Corridor", 52, 74, ["center-lobby", "south-east", "south-west"]),
+    node("south-west", "남서측 복도", "Southwest Corridor", 38, 74, ["west-hall", "south-center"]),
+    node("south-east", "남동측 복도", "Southeast Corridor", 69, 71, ["east-hall", "south-center"])
   ],
   "3F": [
-    node("vertical-access", "에스컬레이터", "Escalator", 42, 52, ["center-lobby", "north-west"]),
-    node("center-lobby", "중앙 복도", "Central Corridor", 50, 55, ["vertical-access", "west-hall", "east-hall", "south-center"]),
-    node("north-west", "북서측 복도", "Northwest Corridor", 36, 38, ["vertical-access", "west-hall"]),
-    node("west-hall", "서측 복도", "West Hall", 30, 52, ["north-west", "center-lobby", "west-lounge"]),
-    node("west-lounge", "서측 라운지 앞", "West Lounge", 24, 38, ["west-hall"]),
-    node("east-hall", "동측 복도", "East Hall", 64, 55, ["center-lobby", "print-zone"]),
+    node("escalator-3f", "에스컬레이터", "Escalator", 43, 39, ["north-gallery", "center-lobby"]),
+    node("north-gallery", "북측 라운지 통로", "North Gallery Corridor", 50, 35, ["escalator-3f", "east-terrace"]),
+    node("east-terrace", "동측 테라스 통로", "East Terrace Corridor", 69, 33, ["north-gallery", "east-hall"]),
+    node("center-lobby", "중앙 복도", "Central Corridor", 48, 51, ["escalator-3f", "west-hall", "east-hall", "south-center"]),
+    node("west-hall", "서측 복도", "West Hall", 31, 52, ["center-lobby", "west-lounge", "north-west"]),
+    node("north-west", "북서측 복도", "Northwest Corridor", 36, 38, ["west-hall"]),
+    node("west-lounge", "서측 라운지 앞", "West Lounge", 24, 39, ["west-hall"]),
+    node("east-hall", "동측 복도", "East Hall", 63, 52, ["center-lobby", "east-terrace", "print-zone"]),
     node("print-zone", "프린트존 앞", "Print Zone", 58, 54, ["east-hall"]),
     node("south-center", "남측 중앙 복도", "South Central Corridor", 50, 72, ["center-lobby"])
   ]
@@ -79,11 +89,10 @@ export function getRouteNodeOptions(floor: Floor) {
 export function createIndoorRoute(store: Store): IndoorRoute {
   const floor = store.floor as Floor;
   const destination = { x: store.x, y: store.y };
-  const startNodeId = floor === "1F" ? infoDeskNodeId : verticalAccessNodeId;
   const graph = floorGraphs[floor] ?? floorGraphs["1F"];
+  const startNodeId = floorStartNodeMap[floor] ?? infoDeskNodeId;
   const destinationNodeId = hasNode(graph, store.routeAnchorId) ? store.routeAnchorId! : findNearestNodeId(graph, destination);
-  const corridorPoints = findRoutePoints(graph, startNodeId, destinationNodeId);
-  const points = appendDestination(corridorPoints, destination);
+  const points = findRoutePoints(graph, startNodeId, destinationNodeId);
 
   if (floor === "1F") {
     return {
@@ -101,8 +110,8 @@ export function createIndoorRoute(store: Store): IndoorRoute {
     points,
     startLabelKo: "출발: 에스컬레이터",
     startLabelEn: "Start: Escalator",
-    instructionKo: `1층 안내데스크에서 에스컬레이터로 이동해 ${floor}로 올라간 뒤, 해당 층의 에스컬레이터에서 파란색 선을 따라 이동하세요.`,
-    instructionEn: `From the 1F information desk, take the escalator to ${floor}, then follow the blue route from the escalator on that floor.`
+    instructionKo: `1층 안내데스크에서 에스컬레이터로 이동해 ${floor}로 올라간 뒤, 해당 층의 에스컬레이터에서 파란색 통로 경로를 따라 이동하세요.`,
+    instructionEn: `From the 1F information desk, take the escalator to ${floor}, then follow the blue corridor route from the escalator on that floor.`
   };
 }
 
@@ -153,18 +162,12 @@ function buildPathIds(startId: string, endId: string, previous: Map<string, stri
 
   while (currentId !== startId) {
     const previousId = previous.get(currentId);
-    if (!previousId) return [startId, endId];
+    if (!previousId) return [startId];
     path.unshift(previousId);
     currentId = previousId;
   }
 
   return path;
-}
-
-function appendDestination(points: RoutePoint[], destination: RoutePoint) {
-  const lastPoint = points[points.length - 1];
-  if (!lastPoint || distance(lastPoint, destination) < 1) return points;
-  return [...points, destination];
 }
 
 function distance(a: RoutePoint, b: RoutePoint) {
