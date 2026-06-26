@@ -6,10 +6,11 @@ import { StoreFacts } from "../components/StoreBottomSheet";
 import { floors, stores as defaultStores } from "../data/stores";
 import { useI18n } from "../i18n";
 import type { Floor, Store } from "../types/store";
+import { createIndoorRoute } from "../utils/indoorRoute";
 import { loadStores } from "../utils/storeRepository";
 
 export default function StoreDetailPage() {
-  const { categoryLabel, storeText, t } = useI18n();
+  const { categoryLabel, language, storeText, t } = useI18n();
   const { id } = useParams();
   const navigate = useNavigate();
   const [storeItems, setStoreItems] = useState<Store[]>([]);
@@ -47,6 +48,7 @@ export default function StoreDetailPage() {
   }
 
   const sameFloorStores = storeItems.filter((item) => item.floor === store.floor && floors.includes(item.floor as Floor));
+  const route = createIndoorRoute(store);
 
   const handleStoreSelect = (selectedStore: Store) => {
     navigate(`/stores/${selectedStore.id}`);
@@ -65,6 +67,10 @@ export default function StoreDetailPage() {
         <div className="mt-4">
           <StoreFacts store={store} />
         </div>
+
+        <p className="mt-4 rounded-lg border border-blue-100 bg-blue-50 p-4 text-sm font-bold leading-6 text-primary">
+          {language === "en" ? route.instructionEn : route.instructionKo}
+        </p>
 
         <section className="mt-4 rounded-lg border border-slate-200 p-3" aria-label={t("actions")}>
           <h3 className="text-sm font-black text-primary">{t("actions")}</h3>
@@ -94,6 +100,7 @@ export default function StoreDetailPage() {
         stores={sameFloorStores}
         selectedStoreId={store.id}
         highlightedStoreIds={[store.id]}
+        routePoints={route.points}
         onStoreSelect={handleStoreSelect}
       />
     </main>

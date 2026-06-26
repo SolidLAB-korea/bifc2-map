@@ -11,10 +11,11 @@ import StoreManager from "../components/StoreManager";
 import { categories, floors, stores as defaultStores } from "../data/stores";
 import { useI18n } from "../i18n";
 import type { Floor, Store } from "../types/store";
+import { createIndoorRoute } from "../utils/indoorRoute";
 import { createStore, deleteStore, loadStores, resetStores, updateStore } from "../utils/storeRepository";
 
 export default function HomePage() {
-  const { categoryLabel, storeText, t } = useI18n();
+  const { categoryLabel, language, storeText, t } = useI18n();
   const [searchParams] = useSearchParams();
   const [query, setQuery] = useState("");
   const [selectedCategory, setSelectedCategory] = useState("전체");
@@ -88,6 +89,8 @@ export default function HomePage() {
 
   const visibleStoreItems = storeItems.filter((store) => floors.includes(store.floor as Floor));
   const floorStores = visibleStoreItems.filter((store) => store.floor === selectedFloor);
+  const selectedRoute = selectedStore ? createIndoorRoute(selectedStore) : null;
+  const routePoints = selectedRoute?.floor === selectedFloor ? selectedRoute.points : undefined;
 
   const handleStoreSelect = (store: Store) => {
     setSelectedFloor(store.floor as Floor);
@@ -164,6 +167,7 @@ export default function HomePage() {
             stores={floorStores}
             selectedStoreId={selectedStore?.id}
             highlightedStoreIds={filteredStores.map((store) => store.id)}
+            routePoints={routePoints}
             onStoreSelect={handleStoreSelect}
           />
 
@@ -177,6 +181,11 @@ export default function HomePage() {
                 <FavoriteButton storeId={selectedStore.id} compact />
               </div>
               <StoreFacts store={selectedStore} />
+              {selectedRoute && (
+                <p className="mt-4 rounded-lg border border-blue-100 bg-blue-50 p-4 text-sm font-bold leading-6 text-primary">
+                  {language === "en" ? selectedRoute.instructionEn : selectedRoute.instructionKo}
+                </p>
+              )}
               <p className="mt-4 rounded-lg bg-appbg p-4 text-sm leading-6 text-slate-700">{storeText(selectedStore, "description")}</p>
               <div className="mt-4 grid grid-cols-2 gap-2">
                 <button
@@ -226,7 +235,13 @@ export default function HomePage() {
         />
       </section>
 
-      <StoreBottomSheet store={selectedStore} onClose={() => setSelectedStore(null)} />
+      <StoreBottomSheet
+        store={selectedStore}
+        routeInstruction={
+          selectedRoute ? (language === "en" ? selectedRoute.instructionEn : selectedRoute.instructionKo) : undefined
+        }
+        onClose={() => setSelectedStore(null)}
+      />
     </main>
   );
 }

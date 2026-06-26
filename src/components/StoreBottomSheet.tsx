@@ -5,10 +5,11 @@ import FavoriteButton from "./FavoriteButton";
 
 type StoreBottomSheetProps = {
   store: Store | null;
+  routeInstruction?: string;
   onClose: () => void;
 };
 
-export default function StoreBottomSheet({ store, onClose }: StoreBottomSheetProps) {
+export default function StoreBottomSheet({ store, routeInstruction, onClose }: StoreBottomSheetProps) {
   const { categoryLabel, storeText, t } = useI18n();
   if (!store) return null;
 
@@ -34,6 +35,12 @@ export default function StoreBottomSheet({ store, onClose }: StoreBottomSheetPro
         </div>
 
         <StoreFacts store={store} />
+
+        {routeInstruction && (
+          <p className="mt-4 rounded-lg border border-blue-100 bg-blue-50 p-4 text-sm font-bold leading-6 text-primary">
+            {routeInstruction}
+          </p>
+        )}
 
         <p className="mt-4 rounded-lg bg-appbg p-4 text-sm leading-6 text-slate-700">{storeText(store, "description")}</p>
 

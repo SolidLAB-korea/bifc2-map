@@ -1,5 +1,7 @@
 import { useState } from "react";
 import type { Floor, Store } from "../types/store";
+import type { RoutePoint } from "../utils/indoorRoute";
+import RouteOverlay from "./RouteOverlay";
 import StoreMarker from "./StoreMarker";
 
 type MapViewProps = {
@@ -7,6 +9,7 @@ type MapViewProps = {
   stores: Store[];
   selectedStoreId?: string;
   highlightedStoreIds?: string[];
+  routePoints?: RoutePoint[];
   onStoreSelect: (store: Store) => void;
 };
 
@@ -31,6 +34,7 @@ export default function MapView({
   stores,
   selectedStoreId,
   highlightedStoreIds,
+  routePoints,
   onStoreSelect
 }: MapViewProps) {
   const [failedImages, setFailedImages] = useState<Record<string, boolean>>({});
@@ -68,6 +72,7 @@ export default function MapView({
           {showPlaceholder && <PlaceholderMap floor={floor} />}
 
           <div className="absolute inset-0">
+            {routePoints && <RouteOverlay points={routePoints} />}
             {stores.map((store) => (
               <StoreMarker
                 key={store.id}
