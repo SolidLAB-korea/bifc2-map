@@ -1,6 +1,7 @@
 import { useState } from "react";
 import type { Floor, Store } from "../types/store";
 import type { RoutePoint } from "../utils/indoorRoute";
+import CorridorOverlay from "./CorridorOverlay";
 import RouteOverlay from "./RouteOverlay";
 import StoreMarker from "./StoreMarker";
 
@@ -11,6 +12,8 @@ type MapViewProps = {
   highlightedStoreIds?: string[];
   routePoints?: RoutePoint[];
   routeStartLabel?: string;
+  showCorridors?: boolean;
+  onCorridorPointPick?: (point: RoutePoint) => void;
   onStoreSelect: (store: Store) => void;
 };
 
@@ -37,9 +40,12 @@ export default function MapView({
   highlightedStoreIds,
   routePoints,
   routeStartLabel,
+  showCorridors = false,
+  onCorridorPointPick,
   onStoreSelect
 }: MapViewProps) {
   const [failedImages, setFailedImages] = useState<Record<string, boolean>>({});
+  const [lastMapPoint, setLastMapPoint] = useState<RoutePoint | null>(null);
   const imageSrc = floorImageMap[floor];
   const showPlaceholder = failedImages[floor];
   const highlightedSet = new Set(highlightedStoreIds);
@@ -61,6 +67,16 @@ export default function MapView({
         <div
           className="relative m-1 overflow-hidden rounded-md border border-slate-300 bg-slate-50 sm:m-3 sm:rounded-lg sm:border-2"
           style={{ aspectRatio: floorAspectRatioMap[floor] }}
+          onClick={(event) => {
+            if (!showCorridors) return;
+            const rect = event.currentTarget.getBoundingClientRect();
+            const point = {
+              x: Math.round(((event.clientX - rect.left) / rect.width) * 1000) / 10,
+              y: Math.round(((event.clientY - rect.top) / rect.height) * 1000) / 10
+            };
+            setLastMapPoint(point);
+            onCorridorPointPick?.(point);
+          }}
         >
           {!showPlaceholder && (
             <img
@@ -74,6 +90,7 @@ export default function MapView({
           {showPlaceholder && <PlaceholderMap floor={floor} />}
 
           <div className="absolute inset-0">
+            {showCorridors && <CorridorOverlay floor={floor} />}
             {routePoints && <RouteOverlay points={routePoints} startLabel={routeStartLabel} />}
             {stores.map((store) => (
               <StoreMarker
@@ -84,6 +101,14 @@ export default function MapView({
                 onSelect={onStoreSelect}
               />
             ))}
+            {showCorridors && lastMapPoint && (
+              <span
+                className="pointer-events-none absolute z-[30] -translate-x-1/2 translate-y-3 rounded-md bg-primary px-2 py-1 text-[10px] font-black text-white shadow-panel"
+                style={{ left: `${lastMapPoint.x}%`, top: `${lastMapPoint.y}%` }}
+              >
+                x {lastMapPoint.x}, y {lastMapPoint.y}
+              </span>
+            )}
           </div>
         </div>
       </div>

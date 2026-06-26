@@ -22,6 +22,9 @@ export type RouteNode = {
   neighbors: string[];
 };
 
+export type RouteGraph = Record<Floor, RouteNode[]>;
+
+const routeGraphStorageKey = "bifc2.routeGraph";
 const infoDeskNodeId = "info-desk";
 
 const floorStartNodeMap: Record<Floor, string> = {
@@ -31,7 +34,7 @@ const floorStartNodeMap: Record<Floor, string> = {
   "3F": "escalator-3f"
 };
 
-const floorGraphs: Record<Floor, RouteNode[]> = {
+const defaultFloorGraphs: RouteGraph = {
   B1: [
     node("vertical-access", "엘리베이터/에스컬레이터 홀", "Elevator/Escalator Hall", 50, 28, ["main-corridor"]),
     node("main-corridor", "중앙 통로", "Main Corridor", 50, 58, ["vertical-access", "parking"]),
@@ -56,23 +59,31 @@ const floorGraphs: Record<Floor, RouteNode[]> = {
     node("east-shops", "동측 매장 앞 통로", "East Shops Corridor", 78, 72, ["east-hall"])
   ],
   "2F": [
-    node("escalator-2f", "에스컬레이터", "Escalator", 87, 15, ["north-east-entry"]),
-    node("north-east-entry", "북동측 진입 통로", "Northeast Entry Corridor", 82, 22, ["escalator-2f", "north-east-curve"]),
-    node("north-east-curve", "북동측 곡선 통로", "Northeast Curved Corridor", 76, 34, ["north-east-entry", "east-hall"]),
-    node("east-hall", "동측 복도", "East Hall", 70, 47, ["north-east-curve", "center-lobby", "east-clinic", "south-east"]),
-    node("center-lobby", "중앙 복도", "Central Corridor", 55, 53, ["east-hall", "west-hall", "south-center"]),
-    node("west-hall", "서측 복도", "West Hall", 36, 54, ["center-lobby", "west-lounge", "south-west"]),
+    node("escalator-2f", "에스컬레이터", "Escalator", 53, 58, ["central-escalator-corridor"]),
+    node("central-escalator-corridor", "중앙 에스컬레이터 통로", "Central Escalator Corridor", 54, 60, [
+      "west-hall",
+      "south-center"
+    ]),
+    node("west-hall", "서측 복도", "West Hall", 37, 55, ["central-escalator-corridor", "west-lounge", "south-west"]),
     node("west-lounge", "서측 라운지 앞", "West Lounge", 29, 42, ["west-hall"]),
-    node("east-clinic", "메디컬 구역 앞", "Medical Area", 77, 50, ["east-hall"]),
-    node("south-center", "남측 중앙 복도", "South Central Corridor", 52, 74, ["center-lobby", "south-east", "south-west"]),
     node("south-west", "남서측 복도", "Southwest Corridor", 38, 74, ["west-hall", "south-center"]),
-    node("south-east", "남동측 복도", "Southeast Corridor", 69, 71, ["east-hall", "south-center"])
+    node("south-center", "남측 중앙 복도", "South Central Corridor", 53, 75, [
+      "central-escalator-corridor",
+      "south-west",
+      "south-east"
+    ]),
+    node("south-east", "남동측 복도", "Southeast Corridor", 69, 71, ["south-center", "east-lower-corridor"]),
+    node("east-lower-corridor", "동측 하단 통로", "East Lower Corridor", 80, 69, ["south-east", "east-hall"]),
+    node("east-hall", "동측 복도", "East Hall", 86, 53, ["east-lower-corridor", "east-upper-corridor", "east-clinic"]),
+    node("east-upper-corridor", "동측 상단 통로", "East Upper Corridor", 84, 36, ["east-hall", "north-east-corridor"]),
+    node("north-east-corridor", "북동측 통로", "Northeast Corridor", 78, 27, ["east-upper-corridor"]),
+    node("east-clinic", "메디컬 구역 앞", "Medical Area", 77, 50, ["east-hall"])
   ],
   "3F": [
-    node("escalator-3f", "에스컬레이터", "Escalator", 43, 39, ["north-gallery", "center-lobby"]),
+    node("escalator-3f", "에스컬레이터", "Escalator", 43, 43, ["center-lobby", "north-gallery"]),
     node("north-gallery", "북측 라운지 통로", "North Gallery Corridor", 50, 35, ["escalator-3f", "east-terrace"]),
     node("east-terrace", "동측 테라스 통로", "East Terrace Corridor", 69, 33, ["north-gallery", "east-hall"]),
-    node("center-lobby", "중앙 복도", "Central Corridor", 48, 51, ["escalator-3f", "west-hall", "east-hall", "south-center"]),
+    node("center-lobby", "중앙 복도", "Central Corridor", 48, 52, ["escalator-3f", "west-hall", "east-hall", "south-center"]),
     node("west-hall", "서측 복도", "West Hall", 31, 52, ["center-lobby", "west-lounge", "north-west"]),
     node("north-west", "북서측 복도", "Northwest Corridor", 36, 38, ["west-hall"]),
     node("west-lounge", "서측 라운지 앞", "West Lounge", 24, 39, ["west-hall"]),
@@ -83,16 +94,45 @@ const floorGraphs: Record<Floor, RouteNode[]> = {
 };
 
 export function getRouteNodeOptions(floor: Floor) {
-  return floorGraphs[floor] ?? [];
+  return getRouteGraph()[floor] ?? [];
 }
 
-export function createIndoorRoute(store: Store): IndoorRoute {
+export function getRouteGraph(): RouteGraph {
+  if (typeof window === "undefined") return cloneRouteGraph(defaultFloorGraphs);
+
+  try {
+    const rawValue = window.localStorage.getItem(routeGraphStorageKey);
+    const parsedValue = rawValue ? JSON.parse(rawValue) : null;
+    return normalizeRouteGraph(parsedValue);
+  } catch {
+    return cloneRouteGraph(defaultFloorGraphs);
+  }
+}
+
+export function saveRouteGraph(graph: RouteGraph) {
+  if (typeof window === "undefined") return;
+  window.localStorage.setItem(routeGraphStorageKey, JSON.stringify(normalizeRouteGraph(graph)));
+  window.dispatchEvent(new Event("route-graph-updated"));
+}
+
+export function resetRouteGraph() {
+  if (typeof window === "undefined") return cloneRouteGraph(defaultFloorGraphs);
+  window.localStorage.removeItem(routeGraphStorageKey);
+  window.dispatchEvent(new Event("route-graph-updated"));
+  return cloneRouteGraph(defaultFloorGraphs);
+}
+
+export function createIndoorRoute(store: Store, stores: Store[] = []): IndoorRoute {
   const floor = store.floor as Floor;
   const destination = { x: store.x, y: store.y };
-  const graph = floorGraphs[floor] ?? floorGraphs["1F"];
-  const startNodeId = floorStartNodeMap[floor] ?? infoDeskNodeId;
+  const routeGraph = getRouteGraph();
+  const graph = routeGraph[floor] ?? routeGraph["1F"];
+  const startFacility = findStartFacility(store, stores);
+  const startPoint = startFacility ? { x: startFacility.x, y: startFacility.y } : undefined;
+  const startNodeId = startPoint ? findNearestNodeId(graph, startPoint) : floorStartNodeMap[floor] ?? infoDeskNodeId;
   const destinationNodeId = hasNode(graph, store.routeAnchorId) ? store.routeAnchorId! : findNearestNodeId(graph, destination);
-  const points = findRoutePoints(graph, startNodeId, destinationNodeId);
+  const corridorPoints = findRoutePoints(graph, startNodeId, destinationNodeId);
+  const points = startPoint ? prependStartPoint(corridorPoints, startPoint) : corridorPoints;
 
   if (floor === "1F") {
     return {
@@ -115,8 +155,87 @@ export function createIndoorRoute(store: Store): IndoorRoute {
   };
 }
 
+function findStartFacility(store: Store, stores: Store[]) {
+  const floor = store.floor as Floor;
+  if (floor === "1F") {
+    return stores.find((item) => item.id !== store.id && item.floor === floor && matchesAny(item, ["안내데스크", "Information Desk"]));
+  }
+
+  return stores.find((item) => item.id !== store.id && item.floor === floor && matchesAny(item, ["에스컬레이터", "Escalator"]));
+}
+
+function matchesAny(store: Store, terms: string[]) {
+  const haystack = [
+    store.name,
+    store.category,
+    store.location,
+    store.description,
+    store.translations?.en?.name,
+    store.translations?.en?.location,
+    store.translations?.en?.description,
+    ...store.keywords,
+    ...(store.translations?.en?.keywords ?? [])
+  ]
+    .filter(Boolean)
+    .join(" ")
+    .toLowerCase();
+
+  return terms.some((term) => haystack.includes(term.toLowerCase()));
+}
+
 function node(id: string, labelKo: string, labelEn: string, x: number, y: number, neighbors: string[]): RouteNode {
   return { id, labelKo, labelEn, point: { x, y }, neighbors };
+}
+
+function normalizeRouteGraph(value: unknown): RouteGraph {
+  const source = isRouteGraphLike(value) ? value : defaultFloorGraphs;
+  return {
+    B1: normalizeRouteNodes(source.B1),
+    "1F": normalizeRouteNodes(source["1F"]),
+    "2F": normalizeRouteNodes(source["2F"]),
+    "3F": normalizeRouteNodes(source["3F"])
+  };
+}
+
+function normalizeRouteNodes(nodes: unknown): RouteNode[] {
+  if (!Array.isArray(nodes)) return [];
+  const validIds = new Set(nodes.map((node) => (isRouteNodeLike(node) ? node.id : "")).filter(Boolean));
+
+  return nodes.filter(isRouteNodeLike).map((routeNode) => ({
+    id: routeNode.id,
+    labelKo: routeNode.labelKo || routeNode.id,
+    labelEn: routeNode.labelEn || routeNode.id,
+    point: {
+      x: clampPercent(Number(routeNode.point.x)),
+      y: clampPercent(Number(routeNode.point.y))
+    },
+    neighbors: Array.from(new Set(routeNode.neighbors.filter((neighborId) => validIds.has(neighborId) && neighborId !== routeNode.id)))
+  }));
+}
+
+function isRouteGraphLike(value: unknown): value is RouteGraph {
+  return Boolean(value && typeof value === "object" && "1F" in value && "2F" in value && "3F" in value);
+}
+
+function isRouteNodeLike(value: unknown): value is RouteNode {
+  if (!value || typeof value !== "object") return false;
+  const routeNode = value as RouteNode;
+  return (
+    typeof routeNode.id === "string" &&
+    typeof routeNode.labelKo === "string" &&
+    typeof routeNode.labelEn === "string" &&
+    Boolean(routeNode.point) &&
+    Array.isArray(routeNode.neighbors)
+  );
+}
+
+function cloneRouteGraph(graph: RouteGraph): RouteGraph {
+  return normalizeRouteGraph(JSON.parse(JSON.stringify(graph)));
+}
+
+function clampPercent(value: number) {
+  if (Number.isNaN(value)) return 50;
+  return Math.min(100, Math.max(0, value));
 }
 
 function hasNode(nodes: RouteNode[], nodeId?: string) {
@@ -168,6 +287,12 @@ function buildPathIds(startId: string, endId: string, previous: Map<string, stri
   }
 
   return path;
+}
+
+function prependStartPoint(points: RoutePoint[], startPoint: RoutePoint) {
+  const firstPoint = points[0];
+  if (!firstPoint || distance(firstPoint, startPoint) < 1) return points;
+  return [startPoint, ...points];
 }
 
 function distance(a: RoutePoint, b: RoutePoint) {

@@ -4,7 +4,7 @@ export default defineConfig({
   base: "/",
   optimizeDeps: {
     noDiscovery: true,
-    include: []
+    include: ["react", "react/jsx-runtime", "react/jsx-dev-runtime", "react-dom", "react-dom/client", "react-router", "react-router-dom"]
   },
   server: {
     fs: {

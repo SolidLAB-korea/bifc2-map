@@ -19,7 +19,7 @@ export default function RouteOverlay({ points, startLabel }: RouteOverlayProps) 
           points={polylinePoints}
           fill="none"
           stroke="rgba(255,255,255,0.92)"
-          strokeWidth="3.6"
+          strokeWidth="1.5"
           strokeLinecap="round"
           strokeLinejoin="round"
         />
@@ -27,13 +27,13 @@ export default function RouteOverlay({ points, startLabel }: RouteOverlayProps) 
           points={polylinePoints}
           fill="none"
           stroke="#1E88E5"
-          strokeWidth="2"
-          strokeDasharray="3 2"
+          strokeWidth="0.85"
+          strokeDasharray="1.8 1.2"
           strokeLinecap="round"
           strokeLinejoin="round"
         />
-        <circle cx={start.x} cy={start.y} r="2.2" fill="#0B2D5C" stroke="white" strokeWidth="0.9" />
-        <circle cx={end.x} cy={end.y} r="1.8" fill="#1E88E5" stroke="white" strokeWidth="0.8" />
+        <circle cx={start.x} cy={start.y} r="1.35" fill="#0B2D5C" stroke="white" strokeWidth="0.45" />
+        <circle cx={end.x} cy={end.y} r="1.15" fill="#1E88E5" stroke="white" strokeWidth="0.4" />
       </svg>
       {startLabel && (
         <span

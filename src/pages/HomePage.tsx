@@ -1,6 +1,7 @@
 import { useEffect, useMemo, useState } from "react";
 import { Link, useSearchParams } from "react-router-dom";
 import CategoryFilter from "../components/CategoryFilter";
+import CorridorManager from "../components/CorridorManager";
 import FavoriteButton from "../components/FavoriteButton";
 import FloorSelector from "../components/FloorSelector";
 import MapView from "../components/MapView";
@@ -11,7 +12,9 @@ import StoreManager from "../components/StoreManager";
 import { categories, floors, stores as defaultStores } from "../data/stores";
 import { useI18n } from "../i18n";
 import type { Floor, Store } from "../types/store";
+import type { RoutePoint } from "../utils/indoorRoute";
 import { createIndoorRoute } from "../utils/indoorRoute";
+import { isAdminSignedIn } from "../utils/storage";
 import { createStore, deleteStore, loadStores, resetStores, updateStore } from "../utils/storeRepository";
 
 export default function HomePage() {
@@ -21,6 +24,11 @@ export default function HomePage() {
   const [selectedCategory, setSelectedCategory] = useState("전체");
   const [selectedFloor, setSelectedFloor] = useState<Floor>("1F");
   const [selectedStore, setSelectedStore] = useState<Store | null>(null);
+  const [isSheetOpen, setIsSheetOpen] = useState(false);
+  const [showCorridors, setShowCorridors] = useState(false);
+  const [pickedCorridorPoint, setPickedCorridorPoint] = useState<RoutePoint | null>(null);
+  const [routeGraphVersion, setRouteGraphVersion] = useState(0);
+  const [isAdmin, setIsAdmin] = useState(() => isAdminSignedIn());
   const [storeItems, setStoreItems] = useState<Store[]>(defaultStores);
   const [storeError, setStoreError] = useState("");
 
@@ -45,6 +53,17 @@ export default function HomePage() {
   }, []);
 
   useEffect(() => {
+    const syncAdminState = () => setIsAdmin(isAdminSignedIn());
+    const syncRouteGraph = () => setRouteGraphVersion((version) => version + 1);
+    window.addEventListener("admin-session-updated", syncAdminState);
+    window.addEventListener("route-graph-updated", syncRouteGraph);
+    return () => {
+      window.removeEventListener("admin-session-updated", syncAdminState);
+      window.removeEventListener("route-graph-updated", syncRouteGraph);
+    };
+  }, []);
+
+  useEffect(() => {
     const floorParam = searchParams.get("floor");
     const storeParam = searchParams.get("store");
     const store = storeItems.find((item) => item.id === storeParam);
@@ -52,6 +71,7 @@ export default function HomePage() {
     if (store) {
       setSelectedFloor(store.floor as Floor);
       setSelectedStore(store);
+      setIsSheetOpen(true);
       return;
     }
 
@@ -89,7 +109,7 @@ export default function HomePage() {
 
   const visibleStoreItems = storeItems.filter((store) => floors.includes(store.floor as Floor));
   const floorStores = visibleStoreItems.filter((store) => store.floor === selectedFloor);
-  const selectedRoute = selectedStore ? createIndoorRoute(selectedStore) : null;
+  const selectedRoute = selectedStore ? createIndoorRoute(selectedStore, visibleStoreItems) : null;
   const routePoints = selectedRoute?.floor === selectedFloor ? selectedRoute.points : undefined;
   const routeStartLabel =
     selectedRoute?.floor === selectedFloor ? (language === "en" ? selectedRoute.startLabelEn : selectedRoute.startLabelKo) : undefined;
@@ -97,6 +117,7 @@ export default function HomePage() {
   const handleStoreSelect = (store: Store) => {
     setSelectedFloor(store.floor as Floor);
     setSelectedStore(store);
+    setIsSheetOpen(true);
   };
 
   const handleCreateStore = async (store: Store) => {
@@ -128,6 +149,7 @@ export default function HomePage() {
       setStoreItems(nextStores);
       if (selectedStore?.id === storeId) {
         setSelectedStore(null);
+        setIsSheetOpen(false);
       }
       setStoreError("");
     } catch (error) {
@@ -140,6 +162,7 @@ export default function HomePage() {
       const nextStores = await resetStores(defaultStores);
       setStoreItems(nextStores);
       setSelectedStore(null);
+      setIsSheetOpen(false);
       setStoreError("");
     } catch (error) {
       setStoreError(error instanceof Error ? error.message : "기본 데이터 복원에 실패했습니다.");
@@ -164,13 +187,45 @@ export default function HomePage() {
 
       <div className="grid min-w-0 gap-2 sm:gap-4 lg:grid-cols-[minmax(0,1fr)_380px] lg:items-start">
         <section className="grid min-w-0 gap-2 sm:gap-4">
+          {isAdmin && (
+            <>
+              <div className="flex items-center justify-between gap-3 rounded-lg border border-slate-200 bg-white px-3 py-2 shadow-panel">
+                <div>
+                  <p className="text-sm font-black text-primary">통로 설정</p>
+                  <p className="text-xs font-bold text-slate-500">관리자 전용 통로망 편집 모드입니다.</p>
+                </div>
+                <button
+                  type="button"
+                  onClick={() => setShowCorridors((previous) => !previous)}
+                  className={`min-h-10 rounded-lg px-4 text-sm font-black ${
+                    showCorridors ? "bg-primary text-white" : "border border-slate-200 bg-white text-primary"
+                  }`}
+                  aria-pressed={showCorridors}
+                >
+                  {showCorridors ? "끄기" : "보기"}
+                </button>
+              </div>
+
+              {showCorridors && (
+                <CorridorManager
+                  floor={selectedFloor}
+                  pickedPoint={pickedCorridorPoint}
+                  onSaved={() => setRouteGraphVersion((version) => version + 1)}
+                />
+              )}
+            </>
+          )}
+
           <MapView
+            key={`${selectedFloor}-${routeGraphVersion}`}
             floor={selectedFloor}
             stores={floorStores}
             selectedStoreId={selectedStore?.id}
             highlightedStoreIds={filteredStores.map((store) => store.id)}
             routePoints={routePoints}
             routeStartLabel={routeStartLabel}
+            showCorridors={isAdmin && showCorridors}
+            onCorridorPointPick={setPickedCorridorPoint}
             onStoreSelect={handleStoreSelect}
           />
 
@@ -239,11 +294,11 @@ export default function HomePage() {
       </section>
 
       <StoreBottomSheet
-        store={selectedStore}
+        store={isSheetOpen ? selectedStore : null}
         routeInstruction={
           selectedRoute ? (language === "en" ? selectedRoute.instructionEn : selectedRoute.instructionKo) : undefined
         }
-        onClose={() => setSelectedStore(null)}
+        onClose={() => setIsSheetOpen(false)}
       />
     </main>
   );

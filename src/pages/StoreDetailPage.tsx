@@ -48,7 +48,7 @@ export default function StoreDetailPage() {
   }
 
   const sameFloorStores = storeItems.filter((item) => item.floor === store.floor && floors.includes(item.floor as Floor));
-  const route = createIndoorRoute(store);
+  const route = createIndoorRoute(store, sameFloorStores);
 
   const handleStoreSelect = (selectedStore: Store) => {
     navigate(`/stores/${selectedStore.id}`);
