@@ -12,7 +12,7 @@ export type IndoorRoute = {
   instructionEn: string;
 };
 
-const infoDeskPoint: RoutePoint = { x: 50, y: 72 };
+const infoDeskPoint: RoutePoint = { x: 20, y: 82 };
 
 const elevatorPoints: Record<Floor, RoutePoint> = {
   B1: { x: 50, y: 25 },
