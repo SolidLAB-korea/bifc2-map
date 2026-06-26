@@ -47,7 +47,7 @@ const floorGraphs: Record<Floor, RouteNode[]> = {
     node("east-shops", "동측 매장 앞 통로", "East Shops Corridor", 78, 72, ["east-hall"])
   ],
   "2F": [
-    node("vertical-access", "엘리베이터/에스컬레이터 홀", "Elevator/Escalator Hall", 50, 28, ["center-lobby", "north-east"]),
+    node("vertical-access", "에스컬레이터", "Escalator", 42, 51, ["center-lobby", "north-east"]),
     node("center-lobby", "중앙 복도", "Central Corridor", 50, 55, ["vertical-access", "west-hall", "east-hall", "south-center"]),
     node("west-hall", "서측 복도", "West Hall", 34, 55, ["center-lobby", "west-lounge"]),
     node("west-lounge", "서측 라운지 앞", "West Lounge", 28, 42, ["west-hall"]),
@@ -59,7 +59,7 @@ const floorGraphs: Record<Floor, RouteNode[]> = {
     node("south-east", "남동측 복도", "Southeast Corridor", 68, 72, ["south-center"])
   ],
   "3F": [
-    node("vertical-access", "엘리베이터/에스컬레이터 홀", "Elevator/Escalator Hall", 50, 28, ["center-lobby", "north-west"]),
+    node("vertical-access", "에스컬레이터", "Escalator", 42, 52, ["center-lobby", "north-west"]),
     node("center-lobby", "중앙 복도", "Central Corridor", 50, 55, ["vertical-access", "west-hall", "east-hall", "south-center"]),
     node("north-west", "북서측 복도", "Northwest Corridor", 36, 38, ["vertical-access", "west-hall"]),
     node("west-hall", "서측 복도", "West Hall", 30, 52, ["north-west", "center-lobby", "west-lounge"]),
@@ -95,8 +95,8 @@ export function createIndoorRoute(store: Store): IndoorRoute {
   return {
     floor,
     points,
-    instructionKo: `1층 안내데스크에서 중앙 엘리베이터 또는 에스컬레이터로 이동해 ${floor}로 올라간 뒤, 해당 층의 엘리베이터/에스컬레이터 홀에서 파란색 선을 따라 이동하세요.`,
-    instructionEn: `From the 1F information desk, take the central elevator or escalator to ${floor}, then follow the blue route from the elevator/escalator hall on that floor.`
+    instructionKo: `1층 안내데스크에서 에스컬레이터로 이동해 ${floor}로 올라간 뒤, 해당 층의 에스컬레이터에서 파란색 선을 따라 이동하세요.`,
+    instructionEn: `From the 1F information desk, take the escalator to ${floor}, then follow the blue route from the escalator on that floor.`
   };
 }
 
