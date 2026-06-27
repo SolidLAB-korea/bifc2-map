@@ -28,7 +28,7 @@ export type RouteStartNodeMap = Record<Floor, string>;
 const routeGraphStorageKey = "bifc2.routeGraph";
 const routeStartStorageKey = "bifc2.routeStartNodes";
 const routeGraphVersionKey = "bifc2.routeGraphVersion";
-const routeGraphVersion = "2026-06-27-real-central-escalator-start";
+const routeGraphVersion = "2026-06-27-escalator-marker-origin";
 const infoDeskNodeId = "info-desk";
 
 const defaultFloorStartNodeMap: RouteStartNodeMap = {
@@ -162,19 +162,20 @@ export function resetRouteGraph() {
   return cloneRouteGraph(defaultFloorGraphs);
 }
 
-export function createIndoorRoute(store: Store, _stores: Store[] = []): IndoorRoute {
+export function createIndoorRoute(store: Store, stores: Store[] = []): IndoorRoute {
   const floor = store.floor as Floor;
   const destination = { x: store.x, y: store.y };
   const routeGraph = getRouteGraph();
   const graph = routeGraph[floor] ?? routeGraph["1F"];
   const startNodeId = getSafeStartNodeId(floor, graph);
   const startNode = graph.find((routeNode) => routeNode.id === startNodeId);
+  const startPoint = findFloorEscalatorPoint(store, stores) ?? startNode?.point;
   const destinationNodeId = isEscalatorStore(store)
     ? startNodeId
     : hasNode(graph, store.routeAnchorId)
       ? store.routeAnchorId!
       : findNearestNodeId(graph, destination);
-  const points = findRoutePoints(graph, startNodeId, destinationNodeId);
+  const points = applyStartPoint(findRoutePoints(graph, startNodeId, destinationNodeId), startPoint);
 
   if (floor === "1F") {
     return {
@@ -214,6 +215,19 @@ function isEscalatorStore(store: Store) {
     .toLowerCase();
 
   return text.includes("에스컬레이터") || text.includes("escalator");
+}
+
+function findFloorEscalatorPoint(store: Store, stores: Store[]) {
+  if (store.floor === "1F") return undefined;
+  if (isEscalatorStore(store)) return { x: store.x, y: store.y };
+
+  const escalator = stores.find((item) => item.floor === store.floor && isEscalatorStore(item));
+  return escalator ? { x: escalator.x, y: escalator.y } : undefined;
+}
+
+function applyStartPoint(points: RoutePoint[], startPoint?: RoutePoint) {
+  if (!startPoint || points.length === 0) return points;
+  return [{ x: clampPercent(startPoint.x), y: clampPercent(startPoint.y) }, ...points.slice(1)];
 }
 
 function normalizeRouteGraph(value: unknown): RouteGraph {
