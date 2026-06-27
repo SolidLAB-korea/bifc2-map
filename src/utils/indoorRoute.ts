@@ -28,7 +28,7 @@ export type RouteStartNodeMap = Record<Floor, string>;
 const routeGraphStorageKey = "bifc2.routeGraph";
 const routeStartStorageKey = "bifc2.routeStartNodes";
 const routeGraphVersionKey = "bifc2.routeGraphVersion";
-const routeGraphVersion = "2026-06-27-central-escalator-start";
+const routeGraphVersion = "2026-06-27-real-central-escalator-start";
 const infoDeskNodeId = "info-desk";
 
 const defaultFloorStartNodeMap: RouteStartNodeMap = {
@@ -63,12 +63,12 @@ const defaultFloorGraphs: RouteGraph = {
     node("east-shops", "동측 매장 앞 통로", "East Shops Corridor", 78, 72, ["east-hall"])
   ],
   "2F": [
-    node("escalator-2f", "에스컬레이터", "Escalator", 48, 56, ["escalator-2f-entry"]),
-    node("escalator-2f-entry", "에스컬레이터 앞 통행로", "Escalator Corridor Entry", 50, 57, [
+    node("escalator-2f", "에스컬레이터", "Escalator", 42, 51, ["escalator-2f-entry"]),
+    node("escalator-2f-entry", "에스컬레이터 앞 통행로", "Escalator Corridor Entry", 43, 55, [
       "escalator-2f",
       "central-escalator-corridor"
     ]),
-    node("central-escalator-corridor", "중앙 에스컬레이터 통로", "Central Escalator Corridor", 52, 58, [
+    node("central-escalator-corridor", "중앙 에스컬레이터 통로", "Central Escalator Corridor", 50, 57, [
       "escalator-2f-entry",
       "west-hall",
       "south-center"
@@ -89,8 +89,8 @@ const defaultFloorGraphs: RouteGraph = {
     node("east-clinic", "메디컬 구역 앞", "Medical Area", 77, 50, ["east-hall"])
   ],
   "3F": [
-    node("escalator-3f", "에스컬레이터", "Escalator", 40, 50, ["escalator-3f-entry"]),
-    node("escalator-3f-entry", "에스컬레이터 앞 통행로", "Escalator Corridor Entry", 43, 52, [
+    node("escalator-3f", "에스컬레이터", "Escalator", 40, 52, ["escalator-3f-entry"]),
+    node("escalator-3f-entry", "에스컬레이터 앞 통행로", "Escalator Corridor Entry", 43, 53, [
       "escalator-3f",
       "center-lobby",
       "north-gallery"
@@ -169,7 +169,11 @@ export function createIndoorRoute(store: Store, _stores: Store[] = []): IndoorRo
   const graph = routeGraph[floor] ?? routeGraph["1F"];
   const startNodeId = getSafeStartNodeId(floor, graph);
   const startNode = graph.find((routeNode) => routeNode.id === startNodeId);
-  const destinationNodeId = hasNode(graph, store.routeAnchorId) ? store.routeAnchorId! : findNearestNodeId(graph, destination);
+  const destinationNodeId = isEscalatorStore(store)
+    ? startNodeId
+    : hasNode(graph, store.routeAnchorId)
+      ? store.routeAnchorId!
+      : findNearestNodeId(graph, destination);
   const points = findRoutePoints(graph, startNodeId, destinationNodeId);
 
   if (floor === "1F") {
@@ -195,6 +199,21 @@ export function createIndoorRoute(store: Store, _stores: Store[] = []): IndoorRo
 
 function node(id: string, labelKo: string, labelEn: string, x: number, y: number, neighbors: string[]): RouteNode {
   return { id, labelKo, labelEn, point: { x, y }, neighbors };
+}
+
+function isEscalatorStore(store: Store) {
+  const text = [
+    store.name,
+    store.category,
+    store.translations?.en?.name,
+    ...store.keywords,
+    ...(store.translations?.en?.keywords ?? [])
+  ]
+    .filter(Boolean)
+    .join(" ")
+    .toLowerCase();
+
+  return text.includes("에스컬레이터") || text.includes("escalator");
 }
 
 function normalizeRouteGraph(value: unknown): RouteGraph {
