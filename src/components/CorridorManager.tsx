@@ -1,7 +1,7 @@
 import { useEffect, useMemo, useState } from "react";
 import type { Floor } from "../types/store";
-import type { RouteGraph, RouteNode, RoutePoint } from "../utils/indoorRoute";
-import { getRouteGraph, resetRouteGraph, saveRouteGraph } from "../utils/indoorRoute";
+import type { RouteGraph, RouteNode, RoutePoint, RouteStartNodeMap } from "../utils/indoorRoute";
+import { getRouteGraph, getRouteStartNodeMap, resetRouteGraph, saveRouteGraph, saveRouteStartNodeMap } from "../utils/indoorRoute";
 
 type CorridorManagerProps = {
   floor: Floor;
@@ -29,9 +29,11 @@ const emptyNodeForm: NodeForm = {
 
 export default function CorridorManager({ floor, pickedPoint, onSaved }: CorridorManagerProps) {
   const [graph, setGraph] = useState<RouteGraph>(() => getRouteGraph());
+  const [startNodeMap, setStartNodeMap] = useState<RouteStartNodeMap>(() => getRouteStartNodeMap());
   const [selectedNodeId, setSelectedNodeId] = useState("");
   const [form, setForm] = useState<NodeForm>(emptyNodeForm);
   const floorNodes = graph[floor] ?? [];
+  const selectedStartNodeId = startNodeMap[floor] ?? "";
 
   const selectedNode = useMemo(
     () => floorNodes.find((routeNode) => routeNode.id === selectedNodeId),
@@ -40,6 +42,7 @@ export default function CorridorManager({ floor, pickedPoint, onSaved }: Corrido
 
   useEffect(() => {
     setGraph(getRouteGraph());
+    setStartNodeMap(getRouteStartNodeMap());
     setSelectedNodeId("");
     setForm(emptyNodeForm);
   }, [floor]);
@@ -69,9 +72,12 @@ export default function CorridorManager({ floor, pickedPoint, onSaved }: Corrido
     if (!nextNode) return;
 
     const nextGraph = updateGraphNode(graph, floor, selectedNodeId, nextNode);
+    const nextStartNodeMap = ensureStartNode(startNodeMap, floor, nextGraph[floor] ?? [], nextNode.id);
     setGraph(nextGraph);
+    setStartNodeMap(nextStartNodeMap);
     setSelectedNodeId(nextNode.id);
     saveRouteGraph(nextGraph);
+    saveRouteStartNodeMap(nextStartNodeMap);
     onSaved();
   };
 
@@ -84,18 +90,29 @@ export default function CorridorManager({ floor, pickedPoint, onSaved }: Corrido
         neighbors: routeNode.neighbors.filter((neighborId) => neighborId !== selectedNodeId)
       }));
     const nextGraph = { ...graph, [floor]: nextNodes };
+    const nextStartNodeMap = ensureStartNode(startNodeMap, floor, nextNodes);
     setGraph(nextGraph);
+    setStartNodeMap(nextStartNodeMap);
     setSelectedNodeId("");
     setForm(emptyNodeForm);
     saveRouteGraph(nextGraph);
+    saveRouteStartNodeMap(nextStartNodeMap);
     onSaved();
   };
 
   const handleReset = () => {
     const nextGraph = resetRouteGraph();
     setGraph(nextGraph);
+    setStartNodeMap(getRouteStartNodeMap());
     setSelectedNodeId("");
     setForm(emptyNodeForm);
+    onSaved();
+  };
+
+  const handleStartNodeChange = (nodeId: string) => {
+    const nextStartNodeMap = { ...startNodeMap, [floor]: nodeId };
+    setStartNodeMap(nextStartNodeMap);
+    saveRouteStartNodeMap(nextStartNodeMap);
     onSaved();
   };
 
@@ -133,6 +150,22 @@ export default function CorridorManager({ floor, pickedPoint, onSaved }: Corrido
           새 노드
         </button>
       </div>
+
+      <label className="grid gap-1 text-xs font-black text-slate-700">
+        이 층 경로 출발점
+        <select
+          value={selectedStartNodeId}
+          onChange={(event) => handleStartNodeChange(event.target.value)}
+          className="min-h-11 rounded-lg border border-blue-100 bg-white px-3 text-sm font-bold text-primary"
+          aria-label="이 층 경로 출발점 선택"
+        >
+          {floorNodes.map((routeNode) => (
+            <option key={routeNode.id} value={routeNode.id}>
+              {routeNode.labelKo} ({routeNode.id})
+            </option>
+          ))}
+        </select>
+      </label>
 
       {pickedPoint && (
         <button
@@ -251,6 +284,16 @@ function updateGraphNode(graph: RouteGraph, floor: Floor, previousId: string, no
   });
 
   return { ...graph, [floor]: withNode };
+}
+
+function ensureStartNode(startNodeMap: RouteStartNodeMap, floor: Floor, floorNodes: RouteNode[], preferredNodeId = ""): RouteStartNodeMap {
+  const existingStartId = startNodeMap[floor];
+  if (floorNodes.some((routeNode) => routeNode.id === existingStartId)) return startNodeMap;
+
+  return {
+    ...startNodeMap,
+    [floor]: floorNodes.find((routeNode) => routeNode.id === preferredNodeId)?.id ?? floorNodes[0]?.id ?? existingStartId
+  };
 }
 
 function slugify(value: string) {

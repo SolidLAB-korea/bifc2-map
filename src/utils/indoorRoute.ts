@@ -23,11 +23,15 @@ export type RouteNode = {
 };
 
 export type RouteGraph = Record<Floor, RouteNode[]>;
+export type RouteStartNodeMap = Record<Floor, string>;
 
 const routeGraphStorageKey = "bifc2.routeGraph";
+const routeStartStorageKey = "bifc2.routeStartNodes";
+const routeGraphVersionKey = "bifc2.routeGraphVersion";
+const routeGraphVersion = "2026-06-27-escalator-starts-corridor-entry";
 const infoDeskNodeId = "info-desk";
 
-const floorStartNodeMap: Record<Floor, string> = {
+const defaultFloorStartNodeMap: RouteStartNodeMap = {
   B1: "vertical-access",
   "1F": infoDeskNodeId,
   "2F": "escalator-2f",
@@ -59,8 +63,13 @@ const defaultFloorGraphs: RouteGraph = {
     node("east-shops", "동측 매장 앞 통로", "East Shops Corridor", 78, 72, ["east-hall"])
   ],
   "2F": [
-    node("escalator-2f", "에스컬레이터", "Escalator", 53, 58, ["central-escalator-corridor"]),
-    node("central-escalator-corridor", "중앙 에스컬레이터 통로", "Central Escalator Corridor", 54, 60, [
+    node("escalator-2f", "에스컬레이터", "Escalator", 48, 50, ["escalator-2f-entry"]),
+    node("escalator-2f-entry", "에스컬레이터 앞 통행로", "Escalator Corridor Entry", 48, 55, [
+      "escalator-2f",
+      "central-escalator-corridor"
+    ]),
+    node("central-escalator-corridor", "중앙 에스컬레이터 통로", "Central Escalator Corridor", 50, 57, [
+      "escalator-2f-entry",
       "west-hall",
       "south-center"
     ]),
@@ -80,10 +89,15 @@ const defaultFloorGraphs: RouteGraph = {
     node("east-clinic", "메디컬 구역 앞", "Medical Area", 77, 50, ["east-hall"])
   ],
   "3F": [
-    node("escalator-3f", "에스컬레이터", "Escalator", 43, 43, ["center-lobby", "north-gallery"]),
-    node("north-gallery", "북측 라운지 통로", "North Gallery Corridor", 50, 35, ["escalator-3f", "east-terrace"]),
+    node("escalator-3f", "에스컬레이터", "Escalator", 40, 50, ["escalator-3f-entry"]),
+    node("escalator-3f-entry", "에스컬레이터 앞 통행로", "Escalator Corridor Entry", 43, 52, [
+      "escalator-3f",
+      "center-lobby",
+      "north-gallery"
+    ]),
+    node("north-gallery", "북측 라운지 통로", "North Gallery Corridor", 50, 35, ["escalator-3f-entry", "east-terrace"]),
     node("east-terrace", "동측 테라스 통로", "East Terrace Corridor", 69, 33, ["north-gallery", "east-hall"]),
-    node("center-lobby", "중앙 복도", "Central Corridor", 48, 52, ["escalator-3f", "west-hall", "east-hall", "south-center"]),
+    node("center-lobby", "중앙 복도", "Central Corridor", 48, 52, ["escalator-3f-entry", "west-hall", "east-hall", "south-center"]),
     node("west-hall", "서측 복도", "West Hall", 31, 52, ["center-lobby", "west-lounge", "north-west"]),
     node("north-west", "북서측 복도", "Northwest Corridor", 36, 38, ["west-hall"]),
     node("west-lounge", "서측 라운지 앞", "West Lounge", 24, 39, ["west-hall"]),
@@ -97,10 +111,26 @@ export function getRouteNodeOptions(floor: Floor) {
   return getRouteGraph()[floor] ?? [];
 }
 
+export function getRouteStartNodeMap(): RouteStartNodeMap {
+  if (typeof window === "undefined") return { ...defaultFloorStartNodeMap };
+
+  try {
+    const rawValue = window.localStorage.getItem(routeStartStorageKey);
+    const parsedValue = rawValue ? JSON.parse(rawValue) : null;
+    return normalizeRouteStartNodeMap(parsedValue, getRouteGraph());
+  } catch {
+    return { ...defaultFloorStartNodeMap };
+  }
+}
+
 export function getRouteGraph(): RouteGraph {
   if (typeof window === "undefined") return cloneRouteGraph(defaultFloorGraphs);
 
   try {
+    if (window.localStorage.getItem(routeGraphVersionKey) !== routeGraphVersion) {
+      return cloneRouteGraph(defaultFloorGraphs);
+    }
+
     const rawValue = window.localStorage.getItem(routeGraphStorageKey);
     const parsedValue = rawValue ? JSON.parse(rawValue) : null;
     return normalizeRouteGraph(parsedValue);
@@ -112,34 +142,42 @@ export function getRouteGraph(): RouteGraph {
 export function saveRouteGraph(graph: RouteGraph) {
   if (typeof window === "undefined") return;
   window.localStorage.setItem(routeGraphStorageKey, JSON.stringify(normalizeRouteGraph(graph)));
+  window.localStorage.setItem(routeGraphVersionKey, routeGraphVersion);
+  window.dispatchEvent(new Event("route-graph-updated"));
+}
+
+export function saveRouteStartNodeMap(startNodeMap: RouteStartNodeMap) {
+  if (typeof window === "undefined") return;
+  window.localStorage.setItem(routeStartStorageKey, JSON.stringify(normalizeRouteStartNodeMap(startNodeMap, getRouteGraph())));
+  window.localStorage.setItem(routeGraphVersionKey, routeGraphVersion);
   window.dispatchEvent(new Event("route-graph-updated"));
 }
 
 export function resetRouteGraph() {
   if (typeof window === "undefined") return cloneRouteGraph(defaultFloorGraphs);
   window.localStorage.removeItem(routeGraphStorageKey);
+  window.localStorage.removeItem(routeStartStorageKey);
+  window.localStorage.removeItem(routeGraphVersionKey);
   window.dispatchEvent(new Event("route-graph-updated"));
   return cloneRouteGraph(defaultFloorGraphs);
 }
 
-export function createIndoorRoute(store: Store, stores: Store[] = []): IndoorRoute {
+export function createIndoorRoute(store: Store, _stores: Store[] = []): IndoorRoute {
   const floor = store.floor as Floor;
   const destination = { x: store.x, y: store.y };
   const routeGraph = getRouteGraph();
   const graph = routeGraph[floor] ?? routeGraph["1F"];
-  const startFacility = findStartFacility(store, stores);
-  const startPoint = startFacility ? { x: startFacility.x, y: startFacility.y } : undefined;
-  const startNodeId = startPoint ? findNearestNodeId(graph, startPoint) : floorStartNodeMap[floor] ?? infoDeskNodeId;
+  const startNodeId = getSafeStartNodeId(floor, graph);
+  const startNode = graph.find((routeNode) => routeNode.id === startNodeId);
   const destinationNodeId = hasNode(graph, store.routeAnchorId) ? store.routeAnchorId! : findNearestNodeId(graph, destination);
-  const corridorPoints = findRoutePoints(graph, startNodeId, destinationNodeId);
-  const points = startPoint ? prependStartPoint(corridorPoints, startPoint) : corridorPoints;
+  const points = findRoutePoints(graph, startNodeId, destinationNodeId);
 
   if (floor === "1F") {
     return {
       floor,
       points,
-      startLabelKo: "출발: 안내데스크",
-      startLabelEn: "Start: Information Desk",
+      startLabelKo: `출발: ${startNode?.labelKo ?? "안내데스크"}`,
+      startLabelEn: `Start: ${startNode?.labelEn ?? "Information Desk"}`,
       instructionKo: "1층 안내데스크에서 출발해 파란색 선이 표시하는 통로를 따라 이동하세요.",
       instructionEn: "Start from the 1F information desk and follow the blue route along the corridor."
     };
@@ -148,39 +186,11 @@ export function createIndoorRoute(store: Store, stores: Store[] = []): IndoorRou
   return {
     floor,
     points,
-    startLabelKo: "출발: 에스컬레이터",
-    startLabelEn: "Start: Escalator",
-    instructionKo: `1층 안내데스크에서 에스컬레이터로 이동해 ${floor}로 올라간 뒤, 해당 층의 에스컬레이터에서 파란색 통로 경로를 따라 이동하세요.`,
-    instructionEn: `From the 1F information desk, take the escalator to ${floor}, then follow the blue corridor route from the escalator on that floor.`
+    startLabelKo: `출발: ${startNode?.labelKo ?? "에스컬레이터"}`,
+    startLabelEn: `Start: ${startNode?.labelEn ?? "Escalator"}`,
+    instructionKo: `1층 안내데스크에서 에스컬레이터로 이동해 ${floor}로 올라간 뒤, 해당 층의 ${startNode?.labelKo ?? "에스컬레이터"}에서 파란색 통로 경로를 따라 이동하세요.`,
+    instructionEn: `From the 1F information desk, take the escalator to ${floor}, then follow the blue corridor route from ${startNode?.labelEn ?? "the escalator"} on that floor.`
   };
-}
-
-function findStartFacility(store: Store, stores: Store[]) {
-  const floor = store.floor as Floor;
-  if (floor === "1F") {
-    return stores.find((item) => item.id !== store.id && item.floor === floor && matchesAny(item, ["안내데스크", "Information Desk"]));
-  }
-
-  return stores.find((item) => item.id !== store.id && item.floor === floor && matchesAny(item, ["에스컬레이터", "Escalator"]));
-}
-
-function matchesAny(store: Store, terms: string[]) {
-  const haystack = [
-    store.name,
-    store.category,
-    store.location,
-    store.description,
-    store.translations?.en?.name,
-    store.translations?.en?.location,
-    store.translations?.en?.description,
-    ...store.keywords,
-    ...(store.translations?.en?.keywords ?? [])
-  ]
-    .filter(Boolean)
-    .join(" ")
-    .toLowerCase();
-
-  return terms.some((term) => haystack.includes(term.toLowerCase()));
 }
 
 function node(id: string, labelKo: string, labelEn: string, x: number, y: number, neighbors: string[]): RouteNode {
@@ -213,6 +223,17 @@ function normalizeRouteNodes(nodes: unknown): RouteNode[] {
   }));
 }
 
+function normalizeRouteStartNodeMap(value: unknown, graph: RouteGraph): RouteStartNodeMap {
+  const source = value && typeof value === "object" ? (value as Partial<RouteStartNodeMap>) : {};
+
+  return {
+    B1: getValidStartNodeId("B1", source.B1, graph),
+    "1F": getValidStartNodeId("1F", source["1F"], graph),
+    "2F": getValidStartNodeId("2F", source["2F"], graph),
+    "3F": getValidStartNodeId("3F", source["3F"], graph)
+  };
+}
+
 function isRouteGraphLike(value: unknown): value is RouteGraph {
   return Boolean(value && typeof value === "object" && "1F" in value && "2F" in value && "3F" in value);
 }
@@ -240,6 +261,19 @@ function clampPercent(value: number) {
 
 function hasNode(nodes: RouteNode[], nodeId?: string) {
   return Boolean(nodeId && nodes.some((routeNode) => routeNode.id === nodeId));
+}
+
+function getSafeStartNodeId(floor: Floor, nodes: RouteNode[]) {
+  const startNodeMap = getRouteStartNodeMap();
+  return getValidStartNodeId(floor, startNodeMap[floor], { ...defaultFloorGraphs, [floor]: nodes });
+}
+
+function getValidStartNodeId(floor: Floor, nodeId: unknown, graph: RouteGraph) {
+  const nodes = graph[floor] ?? [];
+  const defaultNodeId = defaultFloorStartNodeMap[floor];
+  if (typeof nodeId === "string" && hasNode(nodes, nodeId)) return nodeId;
+  if (hasNode(nodes, defaultNodeId)) return defaultNodeId;
+  return nodes[0]?.id ?? defaultNodeId;
 }
 
 function findNearestNodeId(nodes: RouteNode[], destination: RoutePoint) {
@@ -287,12 +321,6 @@ function buildPathIds(startId: string, endId: string, previous: Map<string, stri
   }
 
   return path;
-}
-
-function prependStartPoint(points: RoutePoint[], startPoint: RoutePoint) {
-  const firstPoint = points[0];
-  if (!firstPoint || distance(firstPoint, startPoint) < 1) return points;
-  return [startPoint, ...points];
 }
 
 function distance(a: RoutePoint, b: RoutePoint) {
