@@ -28,7 +28,7 @@ export type RouteStartNodeMap = Record<Floor, string>;
 const routeGraphStorageKey = "bifc2.routeGraph";
 const routeStartStorageKey = "bifc2.routeStartNodes";
 const routeGraphVersionKey = "bifc2.routeGraphVersion";
-const routeGraphVersion = "2026-06-27-escalator-starts-corridor-entry";
+const routeGraphVersion = "2026-06-27-central-escalator-start";
 const infoDeskNodeId = "info-desk";
 
 const defaultFloorStartNodeMap: RouteStartNodeMap = {
@@ -63,12 +63,12 @@ const defaultFloorGraphs: RouteGraph = {
     node("east-shops", "동측 매장 앞 통로", "East Shops Corridor", 78, 72, ["east-hall"])
   ],
   "2F": [
-    node("escalator-2f", "에스컬레이터", "Escalator", 48, 50, ["escalator-2f-entry"]),
-    node("escalator-2f-entry", "에스컬레이터 앞 통행로", "Escalator Corridor Entry", 48, 55, [
+    node("escalator-2f", "에스컬레이터", "Escalator", 48, 56, ["escalator-2f-entry"]),
+    node("escalator-2f-entry", "에스컬레이터 앞 통행로", "Escalator Corridor Entry", 50, 57, [
       "escalator-2f",
       "central-escalator-corridor"
     ]),
-    node("central-escalator-corridor", "중앙 에스컬레이터 통로", "Central Escalator Corridor", 50, 57, [
+    node("central-escalator-corridor", "중앙 에스컬레이터 통로", "Central Escalator Corridor", 52, 58, [
       "escalator-2f-entry",
       "west-hall",
       "south-center"
