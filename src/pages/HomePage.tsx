@@ -13,7 +13,7 @@ import { categories, floors, stores as defaultStores } from "../data/stores";
 import { useI18n } from "../i18n";
 import type { Floor, Store } from "../types/store";
 import type { RoutePoint } from "../utils/indoorRoute";
-import { createIndoorRoute } from "../utils/indoorRoute";
+import { createIndoorRoute, createIndoorRouteToPoint } from "../utils/indoorRoute";
 import { isAdminSignedIn } from "../utils/storage";
 import { createStore, deleteStore, loadStores, resetStores, updateStore } from "../utils/storeRepository";
 
@@ -27,6 +27,7 @@ export default function HomePage() {
   const [isSheetOpen, setIsSheetOpen] = useState(false);
   const [showCorridors, setShowCorridors] = useState(false);
   const [pickedCorridorPoint, setPickedCorridorPoint] = useState<RoutePoint | null>(null);
+  const [pickedRoutePoint, setPickedRoutePoint] = useState<RoutePoint | null>(null);
   const [routeGraphVersion, setRouteGraphVersion] = useState(0);
   const [isAdmin, setIsAdmin] = useState(() => isAdminSignedIn());
   const [storeItems, setStoreItems] = useState<Store[]>(defaultStores);
@@ -109,7 +110,11 @@ export default function HomePage() {
 
   const visibleStoreItems = storeItems.filter((store) => floors.includes(store.floor as Floor));
   const floorStores = visibleStoreItems.filter((store) => store.floor === selectedFloor);
-  const selectedRoute = selectedStore ? createIndoorRoute(selectedStore, visibleStoreItems) : null;
+  const selectedRoute = selectedStore
+    ? createIndoorRoute(selectedStore, visibleStoreItems)
+    : pickedRoutePoint
+      ? createIndoorRouteToPoint(selectedFloor, pickedRoutePoint, visibleStoreItems)
+      : null;
   const routePoints = selectedRoute?.floor === selectedFloor ? selectedRoute.points : undefined;
   const routeStartLabel =
     selectedRoute?.floor === selectedFloor ? (language === "en" ? selectedRoute.startLabelEn : selectedRoute.startLabelKo) : undefined;
@@ -117,7 +122,21 @@ export default function HomePage() {
   const handleStoreSelect = (store: Store) => {
     setSelectedFloor(store.floor as Floor);
     setSelectedStore(store);
+    setPickedRoutePoint(null);
     setIsSheetOpen(true);
+  };
+
+  const handleFloorSelect = (floor: Floor) => {
+    setSelectedFloor(floor);
+    setSelectedStore(null);
+    setPickedRoutePoint(null);
+    setIsSheetOpen(false);
+  };
+
+  const handleRoutePointPick = (point: RoutePoint) => {
+    setSelectedStore(null);
+    setIsSheetOpen(false);
+    setPickedRoutePoint(point);
   };
 
   const handleCreateStore = async (store: Store) => {
@@ -181,7 +200,7 @@ export default function HomePage() {
           <CategoryFilter categories={categories} selectedCategory={selectedCategory} onSelect={setSelectedCategory} />
         </div>
         <div className="mt-2 sm:mt-4">
-          <FloorSelector floors={floors} selectedFloor={selectedFloor} onSelect={setSelectedFloor} />
+          <FloorSelector floors={floors} selectedFloor={selectedFloor} onSelect={handleFloorSelect} />
         </div>
       </section>
 
@@ -226,6 +245,7 @@ export default function HomePage() {
             routeStartLabel={routeStartLabel}
             showCorridors={isAdmin && showCorridors}
             onCorridorPointPick={setPickedCorridorPoint}
+            onRoutePointPick={handleRoutePointPick}
             onStoreSelect={handleStoreSelect}
           />
 

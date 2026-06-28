@@ -28,7 +28,7 @@ export type RouteStartNodeMap = Record<Floor, string>;
 const routeGraphStorageKey = "bifc2.routeGraph";
 const routeStartStorageKey = "bifc2.routeStartNodes";
 const routeGraphVersionKey = "bifc2.routeGraphVersion";
-const routeGraphVersion = "2026-06-27-escalator-marker-origin";
+const routeGraphVersion = "2026-06-28-corridor-dijkstra-routing";
 const infoDeskNodeId = "info-desk";
 
 const defaultFloorStartNodeMap: RouteStartNodeMap = {
@@ -175,7 +175,7 @@ export function createIndoorRoute(store: Store, stores: Store[] = []): IndoorRou
     : hasNode(graph, store.routeAnchorId)
       ? store.routeAnchorId!
       : findNearestNodeId(graph, destination);
-  const points = applyStartPoint(findRoutePoints(graph, startNodeId, destinationNodeId), startPoint);
+  const points = applyStartPoint(findShortestRoutePoints(graph, startNodeId, destinationNodeId), startPoint);
 
   if (floor === "1F") {
     return {
@@ -198,6 +198,36 @@ export function createIndoorRoute(store: Store, stores: Store[] = []): IndoorRou
   };
 }
 
+export function createIndoorRouteToPoint(floor: Floor, point: RoutePoint, stores: Store[] = []): IndoorRoute {
+  const routeGraph = getRouteGraph();
+  const graph = routeGraph[floor] ?? routeGraph["1F"];
+  const startNodeId = getSafeStartNodeId(floor, graph);
+  const startNode = graph.find((routeNode) => routeNode.id === startNodeId);
+  const startPoint = findFloorEscalatorPoint({ floor } as Store, stores) ?? startNode?.point;
+  const destinationNodeId = findNearestNodeId(graph, point);
+  const points = applyStartPoint(findShortestRoutePoints(graph, startNodeId, destinationNodeId), startPoint);
+
+  if (floor === "1F") {
+    return {
+      floor,
+      points,
+      startLabelKo: `출발: ${startNode?.labelKo ?? "안내데스크"}`,
+      startLabelEn: `Start: ${startNode?.labelEn ?? "Information Desk"}`,
+      instructionKo: "선택한 위치와 가장 가까운 통로 지점까지 지정된 통로망을 따라 이동하세요.",
+      instructionEn: "Follow the assigned corridor route to the corridor point nearest to the selected location."
+    };
+  }
+
+  return {
+    floor,
+    points,
+    startLabelKo: `출발: ${startNode?.labelKo ?? "에스컬레이터"}`,
+    startLabelEn: `Start: ${startNode?.labelEn ?? "Escalator"}`,
+    instructionKo: `해당 층의 ${startNode?.labelKo ?? "에스컬레이터"}에서 출발해 선택 위치와 가장 가까운 통로 지점까지 이동하세요.`,
+    instructionEn: `Start from ${startNode?.labelEn ?? "the escalator"} on this floor and follow the corridor route to the nearest corridor point.`
+  };
+}
+
 function node(id: string, labelKo: string, labelEn: string, x: number, y: number, neighbors: string[]): RouteNode {
   return { id, labelKo, labelEn, point: { x, y }, neighbors };
 }
@@ -207,7 +237,7 @@ function isEscalatorStore(store: Store) {
     store.name,
     store.category,
     store.translations?.en?.name,
-    ...store.keywords,
+    ...(store.keywords ?? []),
     ...(store.translations?.en?.keywords ?? [])
   ]
     .filter(Boolean)
@@ -317,29 +347,53 @@ function findNearestNodeId(nodes: RouteNode[], destination: RoutePoint) {
   }, nodes[0]).id;
 }
 
-function findRoutePoints(nodes: RouteNode[], startId: string, endId: string) {
+function findShortestRoutePoints(nodes: RouteNode[], startId: string, endId: string) {
   const nodeMap = new Map(nodes.map((routeNode) => [routeNode.id, routeNode]));
-  const queue = [startId];
-  const visited = new Set([startId]);
-  const previous = new Map<string, string>();
+  if (!nodeMap.has(startId) || !nodeMap.has(endId)) return [];
 
-  while (queue.length > 0) {
-    const currentId = queue.shift();
+  const unvisited = new Set(nodes.map((routeNode) => routeNode.id));
+  const distances = new Map<string, number>(nodes.map((routeNode) => [routeNode.id, Infinity]));
+  const previous = new Map<string, string>();
+  distances.set(startId, 0);
+
+  while (unvisited.size > 0) {
+    const currentId = getNearestUnvisitedId(unvisited, distances);
     if (!currentId || currentId === endId) break;
+    unvisited.delete(currentId);
 
     const currentNode = nodeMap.get(currentId);
     if (!currentNode) continue;
 
     for (const neighborId of currentNode.neighbors) {
-      if (visited.has(neighborId)) continue;
-      visited.add(neighborId);
-      previous.set(neighborId, currentId);
-      queue.push(neighborId);
+      if (!unvisited.has(neighborId)) continue;
+      const neighborNode = nodeMap.get(neighborId);
+      if (!neighborNode) continue;
+
+      const nextDistance = (distances.get(currentId) ?? Infinity) + distance(currentNode.point, neighborNode.point);
+      if (nextDistance < (distances.get(neighborId) ?? Infinity)) {
+        distances.set(neighborId, nextDistance);
+        previous.set(neighborId, currentId);
+      }
     }
   }
 
   const pathIds = buildPathIds(startId, endId, previous);
   return pathIds.map((id) => nodeMap.get(id)?.point).filter(Boolean) as RoutePoint[];
+}
+
+function getNearestUnvisitedId(unvisited: Set<string>, distances: Map<string, number>) {
+  let nearestId = "";
+  let nearestDistance = Infinity;
+
+  for (const nodeId of unvisited) {
+    const nodeDistance = distances.get(nodeId) ?? Infinity;
+    if (nodeDistance < nearestDistance) {
+      nearestDistance = nodeDistance;
+      nearestId = nodeId;
+    }
+  }
+
+  return Number.isFinite(nearestDistance) ? nearestId : "";
 }
 
 function buildPathIds(startId: string, endId: string, previous: Map<string, string>) {

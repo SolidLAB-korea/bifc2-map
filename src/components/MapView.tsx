@@ -14,6 +14,7 @@ type MapViewProps = {
   routeStartLabel?: string;
   showCorridors?: boolean;
   onCorridorPointPick?: (point: RoutePoint) => void;
+  onRoutePointPick?: (point: RoutePoint) => void;
   onStoreSelect: (store: Store) => void;
 };
 
@@ -42,6 +43,7 @@ export default function MapView({
   routeStartLabel,
   showCorridors = false,
   onCorridorPointPick,
+  onRoutePointPick,
   onStoreSelect
 }: MapViewProps) {
   const [failedImages, setFailedImages] = useState<Record<string, boolean>>({});
@@ -68,14 +70,19 @@ export default function MapView({
           className="relative m-1 overflow-hidden rounded-md border border-slate-300 bg-slate-50 sm:m-3 sm:rounded-lg sm:border-2"
           style={{ aspectRatio: floorAspectRatioMap[floor] }}
           onClick={(event) => {
-            if (!showCorridors) return;
             const rect = event.currentTarget.getBoundingClientRect();
             const point = {
               x: Math.round(((event.clientX - rect.left) / rect.width) * 1000) / 10,
               y: Math.round(((event.clientY - rect.top) / rect.height) * 1000) / 10
             };
-            setLastMapPoint(point);
-            onCorridorPointPick?.(point);
+
+            if (showCorridors) {
+              setLastMapPoint(point);
+              onCorridorPointPick?.(point);
+              return;
+            }
+
+            onRoutePointPick?.(point);
           }}
         >
           {!showPlaceholder && (
