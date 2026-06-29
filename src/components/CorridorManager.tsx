@@ -49,7 +49,11 @@ export default function CorridorManager({ floor, pickedPoint, onSaved }: Corrido
 
   useEffect(() => {
     if (!selectedNode) {
-      setForm(emptyNodeForm);
+      setForm((previous) => ({
+        ...emptyNodeForm,
+        x: previous.x,
+        y: previous.y
+      }));
       return;
     }
 
@@ -62,6 +66,15 @@ export default function CorridorManager({ floor, pickedPoint, onSaved }: Corrido
       neighborsText: selectedNode.neighbors.join(", ")
     });
   }, [selectedNode]);
+
+  useEffect(() => {
+    if (!pickedPoint) return;
+    setForm((previous) => ({
+      ...previous,
+      x: pickedPoint.x,
+      y: pickedPoint.y
+    }));
+  }, [pickedPoint]);
 
   const updateForm = (field: keyof NodeForm, value: string | number) => {
     setForm((previous) => ({ ...previous, [field]: value }));
@@ -168,16 +181,9 @@ export default function CorridorManager({ floor, pickedPoint, onSaved }: Corrido
       </label>
 
       {pickedPoint && (
-        <button
-          type="button"
-          onClick={() => {
-            updateForm("x", pickedPoint.x);
-            updateForm("y", pickedPoint.y);
-          }}
-          className="rounded-lg border border-blue-100 bg-white px-3 py-2 text-left text-xs font-black text-primary"
-        >
-          지도 클릭 좌표 적용: x {pickedPoint.x}, y {pickedPoint.y}
-        </button>
+        <p className="rounded-lg border border-blue-100 bg-white px-3 py-2 text-xs font-black text-primary">
+          지도 클릭 좌표 자동 적용됨: x {pickedPoint.x}, y {pickedPoint.y}
+        </p>
       )}
 
       <div className="grid gap-2 sm:grid-cols-2">
