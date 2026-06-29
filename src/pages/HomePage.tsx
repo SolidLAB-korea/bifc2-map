@@ -58,9 +58,11 @@ export default function HomePage() {
     const syncRouteGraph = () => setRouteGraphVersion((version) => version + 1);
     window.addEventListener("admin-session-updated", syncAdminState);
     window.addEventListener("route-graph-updated", syncRouteGraph);
+    window.addEventListener("route-mask-updated", syncRouteGraph);
     return () => {
       window.removeEventListener("admin-session-updated", syncAdminState);
       window.removeEventListener("route-graph-updated", syncRouteGraph);
+      window.removeEventListener("route-mask-updated", syncRouteGraph);
     };
   }, []);
 

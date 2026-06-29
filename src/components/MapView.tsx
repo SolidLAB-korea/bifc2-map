@@ -4,6 +4,7 @@ import type { RoutePoint } from "../utils/indoorRoute";
 import CorridorOverlay from "./CorridorOverlay";
 import RouteOverlay from "./RouteOverlay";
 import StoreMarker from "./StoreMarker";
+import WalkableMaskEditor from "./WalkableMaskEditor";
 
 type MapViewProps = {
   floor: Floor;
@@ -108,6 +109,7 @@ export default function MapView({
                 onSelect={onStoreSelect}
               />
             ))}
+            {showCorridors && <WalkableMaskEditor floor={floor} />}
             {showCorridors && lastMapPoint && (
               <span
                 className="pointer-events-none absolute z-[30] -translate-x-1/2 translate-y-3 rounded-md bg-primary px-2 py-1 text-[10px] font-black text-white shadow-panel"

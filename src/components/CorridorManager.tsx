@@ -134,7 +134,7 @@ export default function CorridorManager({ floor, pickedPoint, onSaved }: Corrido
       <div>
         <h3 className="text-sm font-black text-primary">통로망 편집</h3>
         <p className="mt-1 text-xs font-bold leading-5 text-slate-600">
-          지도에서 좌표를 찍고 노드를 저장하세요. 연결 노드는 쉼표로 구분합니다.
+          지도 위에서 통행 가능한 길을 브러시로 칠하세요. 아래 노드 입력은 세부 경로 보정이 필요할 때만 사용합니다.
         </p>
       </div>
 

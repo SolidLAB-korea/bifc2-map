@@ -1,4 +1,5 @@
 import type { Floor, Store } from "../types/store";
+import { findWalkableRoute } from "./walkableMask";
 
 export type RoutePoint = {
   x: number;
@@ -28,7 +29,7 @@ export type RouteStartNodeMap = Record<Floor, string>;
 const routeGraphStorageKey = "bifc2.routeGraph";
 const routeStartStorageKey = "bifc2.routeStartNodes";
 const routeGraphVersionKey = "bifc2.routeGraphVersion";
-const routeGraphVersion = "2026-06-28-corridor-dijkstra-routing";
+const routeGraphVersion = "2026-06-29-walkable-mask-routing";
 const infoDeskNodeId = "info-desk";
 
 const defaultFloorStartNodeMap: RouteStartNodeMap = {
@@ -175,7 +176,9 @@ export function createIndoorRoute(store: Store, stores: Store[] = []): IndoorRou
     : hasNode(graph, store.routeAnchorId)
       ? store.routeAnchorId!
       : findNearestNodeId(graph, destination);
-  const points = applyStartPoint(findShortestRoutePoints(graph, startNodeId, destinationNodeId), startPoint);
+  const points =
+    findWalkableRoute(floor, startPoint ?? startNode?.point ?? destination, destination) ??
+    applyStartPoint(findShortestRoutePoints(graph, startNodeId, destinationNodeId), startPoint);
 
   if (floor === "1F") {
     return {
@@ -205,7 +208,9 @@ export function createIndoorRouteToPoint(floor: Floor, point: RoutePoint, stores
   const startNode = graph.find((routeNode) => routeNode.id === startNodeId);
   const startPoint = findFloorEscalatorPoint({ floor } as Store, stores) ?? startNode?.point;
   const destinationNodeId = findNearestNodeId(graph, point);
-  const points = applyStartPoint(findShortestRoutePoints(graph, startNodeId, destinationNodeId), startPoint);
+  const points =
+    findWalkableRoute(floor, startPoint ?? startNode?.point ?? point, point) ??
+    applyStartPoint(findShortestRoutePoints(graph, startNodeId, destinationNodeId), startPoint);
 
   if (floor === "1F") {
     return {
