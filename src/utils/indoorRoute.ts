@@ -1,4 +1,5 @@
 import type { Floor, Store } from "../types/store";
+import { saveRouteGraphToDatabase, saveRouteStartNodesToDatabase } from "./routeSettingsRepository";
 import { findWalkableRoute } from "./walkableMask";
 
 export type RoutePoint = {
@@ -25,6 +26,11 @@ export type RouteNode = {
 
 export type RouteGraph = Record<Floor, RouteNode[]>;
 export type RouteStartNodeMap = Record<Floor, string>;
+export type RouteSettingSnapshot = {
+  floor: Floor;
+  route_graph?: unknown;
+  route_start_node_id?: string | null;
+};
 
 const routeGraphStorageKey = "bifc2.routeGraph";
 const routeStartStorageKey = "bifc2.routeStartNodes";
@@ -142,16 +148,20 @@ export function getRouteGraph(): RouteGraph {
 
 export function saveRouteGraph(graph: RouteGraph) {
   if (typeof window === "undefined") return;
-  window.localStorage.setItem(routeGraphStorageKey, JSON.stringify(normalizeRouteGraph(graph)));
+  const nextGraph = normalizeRouteGraph(graph);
+  window.localStorage.setItem(routeGraphStorageKey, JSON.stringify(nextGraph));
   window.localStorage.setItem(routeGraphVersionKey, routeGraphVersion);
   window.dispatchEvent(new Event("route-graph-updated"));
+  void saveRouteGraphToDatabase(nextGraph);
 }
 
 export function saveRouteStartNodeMap(startNodeMap: RouteStartNodeMap) {
   if (typeof window === "undefined") return;
-  window.localStorage.setItem(routeStartStorageKey, JSON.stringify(normalizeRouteStartNodeMap(startNodeMap, getRouteGraph())));
+  const nextStartNodeMap = normalizeRouteStartNodeMap(startNodeMap, getRouteGraph());
+  window.localStorage.setItem(routeStartStorageKey, JSON.stringify(nextStartNodeMap));
   window.localStorage.setItem(routeGraphVersionKey, routeGraphVersion);
   window.dispatchEvent(new Event("route-graph-updated"));
+  void saveRouteStartNodesToDatabase(nextStartNodeMap);
 }
 
 export function resetRouteGraph() {
@@ -160,7 +170,34 @@ export function resetRouteGraph() {
   window.localStorage.removeItem(routeStartStorageKey);
   window.localStorage.removeItem(routeGraphVersionKey);
   window.dispatchEvent(new Event("route-graph-updated"));
-  return cloneRouteGraph(defaultFloorGraphs);
+  const defaultGraph = cloneRouteGraph(defaultFloorGraphs);
+  void saveRouteGraphToDatabase(defaultGraph);
+  void saveRouteStartNodesToDatabase({ ...defaultFloorStartNodeMap });
+  return defaultGraph;
+}
+
+export function hydrateRouteSettings(settings: RouteSettingSnapshot[]) {
+  if (typeof window === "undefined") return;
+  if (settings.length === 0) return;
+
+  const currentGraph = getRouteGraph();
+  const currentStartNodeMap = getRouteStartNodeMap();
+  const nextGraph: RouteGraph = { ...currentGraph };
+  const nextStartNodeMap: RouteStartNodeMap = { ...currentStartNodeMap };
+
+  settings.forEach((setting) => {
+    if (setting.route_graph !== undefined && Array.isArray(setting.route_graph)) {
+      nextGraph[setting.floor] = normalizeRouteNodes(setting.route_graph);
+    }
+    if (setting.route_start_node_id) {
+      nextStartNodeMap[setting.floor] = setting.route_start_node_id;
+    }
+  });
+
+  window.localStorage.setItem(routeGraphStorageKey, JSON.stringify(normalizeRouteGraph(nextGraph)));
+  window.localStorage.setItem(routeStartStorageKey, JSON.stringify(normalizeRouteStartNodeMap(nextStartNodeMap, nextGraph)));
+  window.localStorage.setItem(routeGraphVersionKey, routeGraphVersion);
+  window.dispatchEvent(new Event("route-graph-updated"));
 }
 
 export function createIndoorRoute(store: Store, stores: Store[] = []): IndoorRoute {

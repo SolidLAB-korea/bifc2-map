@@ -1,5 +1,6 @@
 import type { Floor } from "../types/store";
 import type { RoutePoint } from "./indoorRoute";
+import { clearWalkableMaskFromDatabase, saveWalkableMaskToDatabase } from "./routeSettingsRepository";
 
 export type WalkableMask = {
   cells: number[];
@@ -10,6 +11,7 @@ type PaintMode = "draw" | "erase";
 
 const maskSize = 100;
 const maskStoragePrefix = "bifc2.walkableMask.";
+const pendingDatabaseSaves = new Map<Floor, ReturnType<typeof window.setTimeout>>();
 
 export function getWalkableMask(floor: Floor): WalkableMask {
   if (typeof window === "undefined") return createEmptyMask();
@@ -25,13 +27,28 @@ export function getWalkableMask(floor: Floor): WalkableMask {
 
 export function saveWalkableMask(floor: Floor, mask: WalkableMask) {
   if (typeof window === "undefined") return;
-  window.localStorage.setItem(`${maskStoragePrefix}${floor}`, JSON.stringify(normalizeMask(mask)));
+  const nextMask = normalizeMask(mask);
+  window.localStorage.setItem(`${maskStoragePrefix}${floor}`, JSON.stringify(nextMask));
   window.dispatchEvent(new Event("route-mask-updated"));
+  debounceDatabaseMaskSave(floor, nextMask);
 }
 
 export function clearWalkableMask(floor: Floor) {
   if (typeof window === "undefined") return;
   window.localStorage.removeItem(`${maskStoragePrefix}${floor}`);
+  window.dispatchEvent(new Event("route-mask-updated"));
+  void clearWalkableMaskFromDatabase(floor);
+}
+
+export function hydrateWalkableMasks(settings: Array<{ floor: Floor; walkable_mask?: unknown }>) {
+  if (typeof window === "undefined") return;
+
+  settings.forEach((setting) => {
+    if (setting.walkable_mask === undefined || setting.walkable_mask === null) return;
+    const nextMask = normalizeMask(setting.walkable_mask);
+    window.localStorage.setItem(`${maskStoragePrefix}${setting.floor}`, JSON.stringify(nextMask));
+  });
+
   window.dispatchEvent(new Event("route-mask-updated"));
 }
 
@@ -72,6 +89,19 @@ export function findWalkableRoute(floor: Floor, start: RoutePoint, destination: 
 
 function createEmptyMask(): WalkableMask {
   return { cells: Array(maskSize * maskSize).fill(0), size: maskSize };
+}
+
+function debounceDatabaseMaskSave(floor: Floor, mask: WalkableMask) {
+  const pendingSave = pendingDatabaseSaves.get(floor);
+  if (pendingSave) window.clearTimeout(pendingSave);
+
+  pendingDatabaseSaves.set(
+    floor,
+    window.setTimeout(() => {
+      pendingDatabaseSaves.delete(floor);
+      void saveWalkableMaskToDatabase(floor, mask);
+    }, 600)
+  );
 }
 
 function normalizeMask(value: unknown): WalkableMask {

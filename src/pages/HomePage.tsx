@@ -14,6 +14,7 @@ import { useI18n } from "../i18n";
 import type { Floor, Store } from "../types/store";
 import type { RoutePoint } from "../utils/indoorRoute";
 import { createIndoorRoute, createIndoorRouteToPoint } from "../utils/indoorRoute";
+import { syncRouteSettingsFromDatabase } from "../utils/routeSettingsSync";
 import { isAdminSignedIn } from "../utils/storage";
 import { createStore, deleteStore, loadStores, resetStores, updateStore } from "../utils/storeRepository";
 
@@ -56,6 +57,7 @@ export default function HomePage() {
   useEffect(() => {
     const syncAdminState = () => setIsAdmin(isAdminSignedIn());
     const syncRouteGraph = () => setRouteGraphVersion((version) => version + 1);
+    syncRouteSettingsFromDatabase().catch((error: Error) => setStoreError(error.message));
     window.addEventListener("admin-session-updated", syncAdminState);
     window.addEventListener("route-graph-updated", syncRouteGraph);
     window.addEventListener("route-mask-updated", syncRouteGraph);
