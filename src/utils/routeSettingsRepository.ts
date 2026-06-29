@@ -1,6 +1,7 @@
 import type { Floor } from "../types/store";
 import type { RouteGraph, RouteStartNodeMap } from "./indoorRoute";
 import type { WalkableMask } from "./walkableMask";
+import { getSupabaseAnonKey, getSupabaseUrl, isSupabaseClientConfigured } from "./supabaseClient";
 
 type RouteSettingRow = {
   floor: Floor;
@@ -16,11 +17,11 @@ type RouteSettingUpdate = {
   walkableMask?: unknown;
 };
 
-const supabaseUrl = import.meta.env.VITE_SUPABASE_URL;
-const supabaseAnonKey = import.meta.env.VITE_SUPABASE_ANON_KEY;
+const supabaseUrl = getSupabaseUrl();
+const supabaseAnonKey = getSupabaseAnonKey();
 const routeSettingsEndpoint = supabaseUrl ? `${supabaseUrl.replace(/\/$/, "")}/rest/v1/route_settings` : "";
 
-export const isRouteSettingsDatabaseConfigured = Boolean(supabaseUrl && supabaseAnonKey);
+export const isRouteSettingsDatabaseConfigured = isSupabaseClientConfigured;
 
 export async function loadRouteSettingsFromDatabase() {
   if (!isRouteSettingsDatabaseConfigured) return [];

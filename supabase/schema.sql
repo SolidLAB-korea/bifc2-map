@@ -99,3 +99,12 @@ for all
 to anon
 using (true)
 with check (true);
+
+do $$
+begin
+  alter publication supabase_realtime add table public.route_settings;
+exception
+  when duplicate_object then null;
+  when undefined_object then null;
+end;
+$$;
