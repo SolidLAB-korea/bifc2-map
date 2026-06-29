@@ -321,9 +321,6 @@ export default function HomePage() {
 
       <StoreBottomSheet
         store={isSheetOpen ? selectedStore : null}
-        routeInstruction={
-          selectedRoute ? (language === "en" ? selectedRoute.instructionEn : selectedRoute.instructionKo) : undefined
-        }
         onClose={() => setIsSheetOpen(false)}
       />
     </main>
