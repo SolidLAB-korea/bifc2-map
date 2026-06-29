@@ -1,6 +1,5 @@
 import type { Store } from "../types/store";
 import { useI18n } from "../i18n";
-import { useMobileDoubleTap } from "../hooks/useMobileDoubleTap";
 
 type StoreMarkerProps = {
   store: Store;
@@ -97,7 +96,6 @@ function createIconDataUri(iconType: IconType) {
 
 export default function StoreMarker({ store, isSelected, isDimmed = false, onSelect }: StoreMarkerProps) {
   const { storeText } = useI18n();
-  const handleMobileDoubleTap = useMobileDoubleTap();
   const labelPositionClass = store.y > 76 ? "bottom-10" : "top-10";
   const iconType = categoryIconTypes[store.category] ?? "service";
   const storeName = storeText(store, "name");
@@ -107,7 +105,7 @@ export default function StoreMarker({ store, isSelected, isDimmed = false, onSel
       type="button"
       onClick={(event) => {
         event.stopPropagation();
-        handleMobileDoubleTap(store.id, () => onSelect(store), event.detail);
+        onSelect(store);
       }}
       className={`group absolute z-10 flex h-9 w-9 -translate-x-1/2 -translate-y-1/2 items-center justify-center rounded-full border-[3px] border-white text-[11px] font-black text-white shadow-lg transition ${
         isSelected ? "scale-[1.15] bg-accent ring-[3px] ring-amber-300" : markerColors[iconType]
