@@ -1,4 +1,5 @@
 import { useI18n } from "../i18n";
+import { useMobileDoubleTap } from "../hooks/useMobileDoubleTap";
 import type { Store } from "../types/store";
 
 type StoreListProps = {
@@ -10,6 +11,7 @@ type StoreListProps = {
 
 export default function StoreList({ stores, selectedStoreId, onStoreSelect, emptyMessage }: StoreListProps) {
   const { categoryLabel, storeText, t } = useI18n();
+  const handleMobileDoubleTap = useMobileDoubleTap();
 
   if (stores.length === 0) {
     return (
@@ -25,7 +27,7 @@ export default function StoreList({ stores, selectedStoreId, onStoreSelect, empt
         <button
           key={store.id}
           type="button"
-          onClick={() => onStoreSelect(store)}
+          onClick={(event) => handleMobileDoubleTap(store.id, () => onStoreSelect(store), event.detail)}
           className={`rounded-lg border bg-white p-4 text-left shadow-sm ${
             selectedStoreId === store.id ? "border-accent ring-2 ring-blue-100" : "border-slate-200"
           }`}
