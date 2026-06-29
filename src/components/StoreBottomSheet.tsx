@@ -13,33 +13,33 @@ export default function StoreBottomSheet({ store, onClose }: StoreBottomSheetPro
   if (!store) return null;
 
   return (
-    <div className="fixed inset-0 z-40 flex items-end justify-center lg:hidden" role="dialog" aria-modal="true" aria-labelledby="sheet-title">
-      <button className="absolute inset-0 bg-slate-950/40" type="button" onClick={onClose} aria-label={t("storeDetailsClose")} />
-      <article className="safe-bottom relative max-h-[86vh] w-full overflow-y-auto rounded-t-2xl bg-white p-5 shadow-sheet">
-        <div className="mb-4 flex items-start justify-between gap-3">
-          <div className="min-w-0">
-            <p className="text-sm font-black text-accent">{categoryLabel(store.category)}</p>
-            <h2 id="sheet-title" className="break-keep text-2xl font-black text-primary">
+    <div className="pointer-events-none fixed inset-x-3 bottom-20 z-40 lg:hidden" role="dialog" aria-modal="false" aria-labelledby="sheet-title">
+      <article className="safe-bottom pointer-events-auto rounded-xl border border-slate-200 bg-white/95 p-3 shadow-sheet backdrop-blur">
+        <div className="flex items-start gap-3">
+          <div className="min-w-0 flex-1">
+            <p className="text-xs font-black text-accent">{categoryLabel(store.category)}</p>
+            <h2 id="sheet-title" className="truncate text-lg font-black leading-tight text-primary">
               {storeText(store, "name")}
             </h2>
+            <p className="mt-1 truncate text-xs font-bold text-slate-600">
+              {store.floor} - {storeText(store, "location")}
+            </p>
           </div>
           <button
             type="button"
             onClick={onClose}
-            className="min-h-11 min-w-11 rounded-full bg-slate-100 text-2xl font-bold text-slate-700"
+            className="min-h-9 min-w-9 rounded-full bg-slate-100 text-xl font-bold text-slate-700"
             aria-label={t("close")}
           >
-            ×
+            x
           </button>
         </div>
 
-        <StoreFacts store={store} />
-
-        <div className="mt-4 grid grid-cols-2 gap-2">
-          <FavoriteButton storeId={store.id} />
+        <div className="mt-3 grid grid-cols-2 gap-2">
+          <FavoriteButton storeId={store.id} compact />
           <Link
             to={`/stores/${store.id}`}
-            className="flex min-h-12 items-center justify-center rounded-lg bg-accent px-4 text-sm font-black text-white"
+            className="flex min-h-10 items-center justify-center rounded-lg bg-accent px-3 text-sm font-black text-white"
             aria-label={`${storeText(store, "name")} ${t("storeInfo")}`}
           >
             {t("storeInfo")}
