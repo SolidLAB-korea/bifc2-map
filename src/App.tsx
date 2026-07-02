@@ -11,9 +11,9 @@ export default function App() {
 
   return (
     <div className="min-h-screen bg-appbg pb-20 text-slate-900 lg:pb-0">
-      <Header />
+      <Header selectedTheme={theme} onThemeSelect={setTheme} />
       <Routes>
-        <Route path="/" element={<HomePage selectedTheme={theme} onThemeSelect={setTheme} />} />
+        <Route path="/" element={<HomePage />} />
         <Route path="/favorites" element={<FavoritesPage />} />
         <Route path="/stores/:id" element={<StoreDetailPage />} />
         <Route path="*" element={<Navigate to="/" replace />} />

@@ -1,7 +1,14 @@
 import { Link } from "react-router-dom";
 import { useI18n } from "../i18n";
+import type { ThemeId } from "../utils/theme";
+import ThemeSelector from "./ThemeSelector";
 
-export default function Header() {
+type HeaderProps = {
+  selectedTheme: ThemeId;
+  onThemeSelect: (theme: ThemeId) => void;
+};
+
+export default function Header({ selectedTheme, onThemeSelect }: HeaderProps) {
   const { language, setLanguage, t } = useI18n();
   const nextLanguage = language === "ko" ? "en" : "ko";
 
@@ -13,6 +20,7 @@ export default function Header() {
           <h1 className="truncate text-xl font-black leading-tight tracking-normal sm:text-3xl">{t("title")}</h1>
         </Link>
         <div className="flex shrink-0 items-center gap-1.5 sm:gap-2">
+          <ThemeSelector selectedTheme={selectedTheme} onSelect={onThemeSelect} />
           <button
             type="button"
             onClick={() => setLanguage(nextLanguage)}

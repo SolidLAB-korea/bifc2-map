@@ -9,23 +9,16 @@ import SearchBar from "../components/SearchBar";
 import StoreBottomSheet, { StoreFacts } from "../components/StoreBottomSheet";
 import StoreList from "../components/StoreList";
 import StoreManager from "../components/StoreManager";
-import ThemeSelector from "../components/ThemeSelector";
 import { categories, floors, stores as defaultStores } from "../data/stores";
 import { useI18n } from "../i18n";
 import type { Floor, Store } from "../types/store";
-import type { ThemeId } from "../utils/theme";
 import type { RoutePoint } from "../utils/indoorRoute";
 import { createIndoorRoute, createIndoorRouteToPoint } from "../utils/indoorRoute";
 import { subscribeRouteSettingsRealtime, syncRouteSettingsFromDatabase } from "../utils/routeSettingsSync";
 import { isAdminSignedIn } from "../utils/storage";
 import { createStore, deleteStore, loadStores, resetStores, updateStore } from "../utils/storeRepository";
 
-type HomePageProps = {
-  selectedTheme: ThemeId;
-  onThemeSelect: (theme: ThemeId) => void;
-};
-
-export default function HomePage({ selectedTheme, onThemeSelect }: HomePageProps) {
+export default function HomePage() {
   const { categoryLabel, language, storeText, t } = useI18n();
   const [searchParams] = useSearchParams();
   const [query, setQuery] = useState("");
@@ -207,10 +200,7 @@ export default function HomePage({ selectedTheme, onThemeSelect }: HomePageProps
         className="min-w-0 overflow-hidden rounded-lg border border-slate-200 bg-white p-2.5 shadow-panel sm:p-4"
         aria-label={t("searchAria")}
       >
-        <div className="mb-2 grid gap-2 sm:mb-3 sm:grid-cols-[minmax(0,1fr)_auto] sm:items-end">
-          <h2 className="min-w-0 text-base font-black text-primary sm:text-xl">BIFC2 {t("title")}</h2>
-          <ThemeSelector selectedTheme={selectedTheme} onSelect={onThemeSelect} />
-        </div>
+        <h2 className="mb-2 text-base font-black text-primary sm:mb-3 sm:text-xl">BIFC2 {t("title")}</h2>
         <SearchBar value={query} onChange={setQuery} />
         <div className="mt-2 sm:mt-4">
           <CategoryFilter categories={categories} selectedCategory={selectedCategory} onSelect={setSelectedCategory} />

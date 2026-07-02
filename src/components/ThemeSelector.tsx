@@ -8,28 +8,22 @@ type ThemeSelectorProps = {
 
 export default function ThemeSelector({ selectedTheme, onSelect }: ThemeSelectorProps) {
   const selectedThemeOption = themes.find((theme) => theme.id === selectedTheme) ?? themes[0];
+  const selectedThemeIndex = themes.findIndex((theme) => theme.id === selectedTheme);
+  const nextTheme = themes[(selectedThemeIndex + 1) % themes.length] ?? themes[0];
 
   return (
-    <label className="grid min-w-0 gap-1 text-xs font-black text-primary sm:w-44">
-      <span>테마</span>
-      <span className="relative flex items-center">
-        <span className="pointer-events-none absolute left-3 flex h-4 w-4 overflow-hidden rounded-full border border-white shadow-sm" aria-hidden="true">
-          <span className="h-full w-1/2" style={{ backgroundColor: selectedThemeOption.primary }} />
-          <span className="h-full w-1/2" style={{ backgroundColor: selectedThemeOption.accent }} />
-        </span>
-        <select
-          value={selectedTheme}
-          onChange={(event) => onSelect(event.target.value as ThemeId)}
-          className="h-11 w-full rounded-lg border border-slate-200 bg-white pl-9 pr-9 text-sm font-black text-slate-800 outline-none transition focus:border-accent focus:ring-2 focus:ring-accent/20"
-          aria-label="테마 선택"
-        >
-          {themes.map((theme) => (
-            <option key={theme.id} value={theme.id}>
-              {theme.label}
-            </option>
-          ))}
-        </select>
+    <button
+      type="button"
+      onClick={() => onSelect(nextTheme.id)}
+      className="flex min-h-11 shrink-0 items-center gap-2 rounded-lg border border-white/30 px-3 py-2 text-xs font-black text-white sm:px-4 sm:py-3 sm:text-sm"
+      aria-label={`테마 변경: 현재 ${selectedThemeOption.label}, 다음 ${nextTheme.label}`}
+      title={`Theme: ${selectedThemeOption.label}`}
+    >
+      <span className="flex h-4 w-4 overflow-hidden rounded-full border border-white/80 shadow-sm" aria-hidden="true">
+        <span className="h-full w-1/2" style={{ backgroundColor: selectedThemeOption.primary }} />
+        <span className="h-full w-1/2" style={{ backgroundColor: selectedThemeOption.accent }} />
       </span>
-    </label>
+      <span className="hidden sm:inline">{selectedThemeOption.label}</span>
+    </button>
   );
 }
