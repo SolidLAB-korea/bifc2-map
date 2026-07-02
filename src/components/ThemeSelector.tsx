@@ -4,18 +4,32 @@ import type { ThemeId } from "../utils/theme";
 type ThemeSelectorProps = {
   selectedTheme: ThemeId;
   onSelect: (theme: ThemeId) => void;
+  tone?: "dark" | "light";
 };
 
-export default function ThemeSelector({ selectedTheme, onSelect }: ThemeSelectorProps) {
+export default function ThemeSelector({ selectedTheme, onSelect, tone = "dark" }: ThemeSelectorProps) {
+  const isLight = tone === "light";
+
   return (
-    <div className="grid min-w-0 flex-1 grid-cols-3 gap-1 rounded-lg border border-white/20 bg-white/10 p-1 sm:flex sm:flex-none" aria-label="Theme selector">
+    <div
+      className={`grid min-w-0 flex-1 grid-cols-3 gap-1 rounded-lg border p-1 sm:flex sm:flex-none ${
+        isLight ? "border-slate-200 bg-slate-50" : "border-white/20 bg-white/10"
+      }`}
+      aria-label="Theme selector"
+    >
       {themes.map((theme) => (
         <button
           key={theme.id}
           type="button"
           onClick={() => onSelect(theme.id)}
-          className={`flex min-h-9 min-w-0 items-center justify-center gap-1 rounded-md border px-2 text-[11px] font-black text-white transition sm:min-w-24 sm:text-xs ${
-            selectedTheme === theme.id ? "border-white bg-white/25 ring-1 ring-white/70" : "border-white/20"
+          className={`flex min-h-9 min-w-0 items-center justify-center gap-1 rounded-md border px-2 text-[11px] font-black transition sm:min-w-24 sm:text-xs ${
+            selectedTheme === theme.id
+              ? isLight
+                ? "border-accent bg-white text-primary ring-2 ring-accent/20"
+                : "border-white bg-white/25 text-white ring-1 ring-white/70"
+              : isLight
+                ? "border-slate-200 bg-white text-slate-600"
+                : "border-white/20 text-white"
           }`}
           aria-label={`${theme.label} theme`}
           aria-pressed={selectedTheme === theme.id}
