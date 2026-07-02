@@ -3,8 +3,26 @@
 @tailwind utilities;
 
 @layer base {
+  :root {
+    --color-primary: 11 45 92;
+    --color-accent: 30 136 229;
+    --color-appbg: 245 247 250;
+  }
+
+  :root[data-theme="garden"] {
+    --color-primary: 6 78 59;
+    --color-accent: 16 185 129;
+    --color-appbg: 244 250 247;
+  }
+
+  :root[data-theme="gray"] {
+    --color-primary: 31 41 55;
+    --color-accent: 100 116 139;
+    --color-appbg: 248 250 252;
+  }
+
   html {
-    background: #f5f7fa;
+    background: rgb(var(--color-appbg));
     overflow-x: hidden;
   }
 
@@ -13,7 +31,7 @@
     min-width: 320px;
     min-height: 100vh;
     color: #172033;
-    background: #f5f7fa;
+    background: rgb(var(--color-appbg));
     font-family: Arial, "Noto Sans KR", sans-serif;
     overflow-x: hidden;
   }

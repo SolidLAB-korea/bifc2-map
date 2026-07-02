@@ -26,14 +26,14 @@ export default function RouteOverlay({ points, startLabel }: RouteOverlayProps) 
         <polyline
           points={polylinePoints}
           fill="none"
-          stroke="#1E88E5"
+          stroke="rgb(var(--color-accent))"
           strokeWidth="0.85"
           strokeDasharray="1.8 1.2"
           strokeLinecap="round"
           strokeLinejoin="round"
         />
-        <circle cx={start.x} cy={start.y} r="1.35" fill="#0B2D5C" stroke="white" strokeWidth="0.45" />
-        <circle cx={end.x} cy={end.y} r="1.15" fill="#1E88E5" stroke="white" strokeWidth="0.4" />
+        <circle cx={start.x} cy={start.y} r="1.35" fill="rgb(var(--color-primary))" stroke="white" strokeWidth="0.45" />
+        <circle cx={end.x} cy={end.y} r="1.15" fill="rgb(var(--color-accent))" stroke="white" strokeWidth="0.4" />
       </svg>
       {startLabel && (
         <span
