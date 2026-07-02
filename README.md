@@ -19,13 +19,7 @@ npm run build
 
 홈 화면의 `매장 데이터 관리` 영역은 관리자 비밀번호 입력 후 사용할 수 있습니다.
 
-기본 비밀번호는 `bifc2-admin`입니다.
-
-배포 전에 `.env` 파일을 만들고 아래 값을 원하는 비밀번호로 바꿔 빌드하세요.
-
-```bash
-VITE_ADMIN_PASSWORD=원하는_비밀번호
-```
+비밀번호는 github settings에서 설정 후 사용하시면 됩니다. 
 
 정적 프론트엔드 앱의 관리자 비밀번호는 완전한 서버 보안이 아닙니다. Supabase 연결 후에는 관리자 메뉴에서 추가/수정/삭제한 매장 정보가 DB에 저장되어 모든 사용자에게 반영됩니다.
 
@@ -60,7 +54,7 @@ npm run build
 ## GitHub 업로드
 
 ```bash
-git remote add origin https://github.com/사용자명/저장소명.git
+git remote add origin https://github.com/SolidLAB-korea/bifc2-map.git
 git branch -M main
 git push -u origin main
 ```
