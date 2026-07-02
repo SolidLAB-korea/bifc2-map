@@ -21,4 +21,8 @@ export function getStoredTheme(): ThemeId {
 export function applyTheme(themeId: ThemeId) {
   if (typeof document === "undefined") return;
   document.documentElement.dataset.theme = themeId;
+
+  const theme = themes.find((item) => item.id === themeId) ?? themes[0];
+  const themeColorMeta = document.querySelector('meta[name="theme-color"]');
+  themeColorMeta?.setAttribute("content", theme.primary);
 }
