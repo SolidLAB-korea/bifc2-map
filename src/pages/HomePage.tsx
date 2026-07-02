@@ -207,10 +207,9 @@ export default function HomePage({ selectedTheme, onThemeSelect }: HomePageProps
         className="min-w-0 overflow-hidden rounded-lg border border-slate-200 bg-white p-2.5 shadow-panel sm:p-4"
         aria-label={t("searchAria")}
       >
-        <h2 className="mb-2 text-base font-black text-primary sm:mb-3 sm:text-xl">BIFC2 {t("title")}</h2>
-        <div className="mb-2 grid gap-1.5 rounded-lg border border-slate-200 bg-appbg p-2 sm:mb-3 sm:grid-cols-[auto_minmax(0,1fr)] sm:items-center">
-          <span className="text-xs font-black text-primary sm:text-sm">테마</span>
-          <ThemeSelector selectedTheme={selectedTheme} onSelect={onThemeSelect} tone="light" />
+        <div className="mb-2 grid gap-2 sm:mb-3 sm:grid-cols-[minmax(0,1fr)_auto] sm:items-end">
+          <h2 className="min-w-0 text-base font-black text-primary sm:text-xl">BIFC2 {t("title")}</h2>
+          <ThemeSelector selectedTheme={selectedTheme} onSelect={onThemeSelect} />
         </div>
         <SearchBar value={query} onChange={setQuery} />
         <div className="mt-2 sm:mt-4">
