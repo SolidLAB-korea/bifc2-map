@@ -23,6 +23,7 @@ export default function ThemeSelector({ selectedTheme, onSelect }: ThemeSelector
         <span className="h-full w-1/2" style={{ backgroundColor: selectedThemeOption.primary }} />
         <span className="h-full w-1/2" style={{ backgroundColor: selectedThemeOption.accent }} />
       </span>
+      <span className="sm:hidden">테마</span>
       <span className="hidden sm:inline">{selectedThemeOption.label}</span>
     </button>
   );
