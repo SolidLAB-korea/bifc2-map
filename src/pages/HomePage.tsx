@@ -200,7 +200,6 @@ export default function HomePage() {
         className="min-w-0 overflow-hidden rounded-lg border border-slate-200 bg-white p-2.5 shadow-panel sm:p-4"
         aria-label={t("searchAria")}
       >
-        <h2 className="mb-2 text-base font-black text-primary sm:mb-3 sm:text-xl">BIFC2 {t("title")}</h2>
         <SearchBar value={query} onChange={setQuery} />
         <div className="mt-2 sm:mt-4">
           <CategoryFilter categories={categories} selectedCategory={selectedCategory} onSelect={setSelectedCategory} />
