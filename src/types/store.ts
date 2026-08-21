@@ -37,4 +37,4 @@ export type StoreTranslation = {
   keywords?: string[];
 };
 
-export type Floor = "B1" | "1F" | "2F" | "3F";
+export type Floor = "1F" | "2F" | "3F";

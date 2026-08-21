@@ -35,22 +35,16 @@ export type RouteSettingSnapshot = {
 const routeGraphStorageKey = "bifc2.routeGraph";
 const routeStartStorageKey = "bifc2.routeStartNodes";
 const routeGraphVersionKey = "bifc2.routeGraphVersion";
-const routeGraphVersion = "2026-06-29-walkable-mask-routing";
+const routeGraphVersion = "2026-08-21-no-b1-routing";
 const infoDeskNodeId = "info-desk";
 
 const defaultFloorStartNodeMap: RouteStartNodeMap = {
-  B1: "vertical-access",
   "1F": infoDeskNodeId,
   "2F": "escalator-2f",
   "3F": "escalator-3f"
 };
 
 const defaultFloorGraphs: RouteGraph = {
-  B1: [
-    node("vertical-access", "엘리베이터/에스컬레이터 홀", "Elevator/Escalator Hall", 50, 28, ["main-corridor"]),
-    node("main-corridor", "중앙 통로", "Main Corridor", 50, 58, ["vertical-access", "parking"]),
-    node("parking", "주차장 연결 통로", "Parking Access", 78, 68, ["main-corridor"])
-  ],
   "1F": [
     node("info-desk", "안내데스크", "Information Desk", 20, 82, ["south-west"]),
     node("south-west", "남서측 복도", "Southwest Corridor", 30, 82, ["info-desk", "south-center", "west-hall"]),
@@ -305,7 +299,6 @@ function applyStartPoint(points: RoutePoint[], startPoint?: RoutePoint) {
 function normalizeRouteGraph(value: unknown): RouteGraph {
   const source = isRouteGraphLike(value) ? value : defaultFloorGraphs;
   return {
-    B1: normalizeRouteNodes(source.B1),
     "1F": normalizeRouteNodes(source["1F"]),
     "2F": normalizeRouteNodes(source["2F"]),
     "3F": normalizeRouteNodes(source["3F"])
@@ -332,7 +325,6 @@ function normalizeRouteStartNodeMap(value: unknown, graph: RouteGraph): RouteSta
   const source = value && typeof value === "object" ? (value as Partial<RouteStartNodeMap>) : {};
 
   return {
-    B1: getValidStartNodeId("B1", source.B1, graph),
     "1F": getValidStartNodeId("1F", source["1F"], graph),
     "2F": getValidStartNodeId("2F", source["2F"], graph),
     "3F": getValidStartNodeId("3F", source["3F"], graph)

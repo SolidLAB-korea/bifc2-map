@@ -107,16 +107,22 @@ export default function StoreMarker({ store, isSelected, isDimmed = false, onSel
         event.stopPropagation();
         onSelect(store);
       }}
-      className={`group absolute z-10 flex h-9 w-9 -translate-x-1/2 -translate-y-1/2 items-center justify-center rounded-full border-[3px] border-white text-[11px] font-black text-white shadow-lg transition ${
-        isSelected ? "scale-[1.15] bg-accent ring-[3px] ring-amber-300" : markerColors[iconType]
-      } ${isDimmed ? "opacity-30" : "opacity-100"}`}
+      className={`group absolute z-10 flex h-11 w-11 -translate-x-1/2 -translate-y-1/2 items-center justify-center transition focus-visible:z-30 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-accent ${
+        isDimmed ? "opacity-30" : "opacity-100"
+      }`}
       style={{ left: `${store.x}%`, top: `${store.y}%` }}
       aria-label={`${storeName} 상세 정보 보기`}
       title={storeName}
     >
-      <img className="h-[18px] w-[18px]" src={createIconDataUri(iconType)} alt="" aria-hidden="true" />
       <span
-        className={`pointer-events-none absolute ${labelPositionClass} hidden max-w-28 rounded-md bg-white px-2 py-1 text-[11px] font-bold text-slate-800 shadow md:group-hover:block md:group-focus-visible:block ${
+        className={`flex h-8 w-8 items-center justify-center rounded-full border-2 border-white text-[11px] font-black text-white shadow-lg transition sm:h-9 sm:w-9 sm:border-[3px] ${
+          isSelected ? "scale-[1.15] bg-accent ring-2 ring-amber-300 sm:ring-[3px]" : markerColors[iconType]
+        }`}
+      >
+        <img className="h-4 w-4 sm:h-[18px] sm:w-[18px]" src={createIconDataUri(iconType)} alt="" aria-hidden="true" />
+      </span>
+      <span
+        className={`pointer-events-none absolute left-1/2 ${labelPositionClass} hidden max-w-48 -translate-x-1/2 truncate whitespace-nowrap rounded-md bg-white px-2 py-1 text-[11px] font-bold text-slate-800 shadow md:group-hover:block md:group-focus-visible:block ${
           isSelected ? "md:block" : ""
         }`}
       >

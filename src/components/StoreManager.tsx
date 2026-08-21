@@ -1,6 +1,7 @@
 import { useEffect, useMemo, useState, type FormEvent } from "react";
 import { categories, floors } from "../data/stores";
 import { useI18n } from "../i18n";
+import BuildInfo from "./BuildInfo";
 import type { Floor, Store } from "../types/store";
 import { getRouteNodeOptions } from "../utils/indoorRoute";
 import { isAdminSignedIn, setAdminSignedIn } from "../utils/storage";
@@ -272,6 +273,7 @@ export default function StoreManager({
                 <h2 className="text-lg font-black text-primary sm:text-xl">
                   {isSignedIn ? "매장 추가/수정/삭제" : "매장 데이터 관리"}
                 </h2>
+                <BuildInfo />
               </div>
               <button
                 type="button"

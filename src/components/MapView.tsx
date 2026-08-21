@@ -1,9 +1,10 @@
-import { useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import type { Floor, Store } from "../types/store";
 import type { RoutePoint } from "../utils/indoorRoute";
 import CorridorOverlay from "./CorridorOverlay";
 import RouteOverlay from "./RouteOverlay";
 import StoreMarker from "./StoreMarker";
+import StoreCluster from "./StoreCluster";
 import WalkableMaskEditor from "./WalkableMaskEditor";
 
 type MapViewProps = {
@@ -22,14 +23,12 @@ type MapViewProps = {
 const mapAssetVersion = "20260625-floor-upgrade";
 
 const floorImageMap: Record<Floor, string> = {
-  B1: `${import.meta.env.BASE_URL}maps/floor-b1.png?v=${mapAssetVersion}`,
   "1F": `${import.meta.env.BASE_URL}maps/floor-1f.png?v=${mapAssetVersion}`,
   "2F": `${import.meta.env.BASE_URL}maps/floor-2f.png?v=${mapAssetVersion}`,
   "3F": `${import.meta.env.BASE_URL}maps/floor-3f.png?v=${mapAssetVersion}`
 };
 
 const floorAspectRatioMap: Record<Floor, string> = {
-  B1: "16 / 9",
   "1F": "1305 / 1205",
   "2F": "1382 / 1138",
   "3F": "1335 / 1178"
@@ -49,10 +48,34 @@ export default function MapView({
 }: MapViewProps) {
   const [failedImages, setFailedImages] = useState<Record<string, boolean>>({});
   const [lastMapPoint, setLastMapPoint] = useState<RoutePoint | null>(null);
+  const [isMobile, setIsMobile] = useState(false);
+  const [expandedClusterKey, setExpandedClusterKey] = useState<string | null>(null);
   const imageSrc = floorImageMap[floor];
   const showPlaceholder = failedImages[floor];
   const highlightedSet = new Set(highlightedStoreIds);
   const shouldDimMarkers = highlightedStoreIds !== undefined;
+  const markerGroups = useMemo(() => groupStores(stores, isMobile), [isMobile, stores]);
+  const storeIdsKey = stores.map((store) => store.id).join("|");
+
+  useEffect(() => {
+    const mediaQuery = window.matchMedia("(max-width: 639px)");
+    const updateViewport = () => setIsMobile(mediaQuery.matches);
+    updateViewport();
+    mediaQuery.addEventListener("change", updateViewport);
+    return () => mediaQuery.removeEventListener("change", updateViewport);
+  }, []);
+
+  useEffect(() => {
+    setExpandedClusterKey(null);
+  }, [floor, storeIdsKey]);
+
+  useEffect(() => {
+    if (!selectedStoreId) return;
+    const selectedGroup = markerGroups.find((group) => group.some((store) => store.id === selectedStoreId));
+    if (selectedGroup && selectedGroup.length > 1) {
+      setExpandedClusterKey(clusterKey(selectedGroup));
+    }
+  }, [markerGroups, selectedStoreId]);
 
   return (
     <section className="overflow-hidden rounded-lg border border-slate-200 bg-white shadow-panel" aria-label={`${floor} 지도`}>
@@ -100,15 +123,50 @@ export default function MapView({
           <div className="absolute inset-0">
             {showCorridors && <CorridorOverlay floor={floor} />}
             {routePoints && <RouteOverlay points={routePoints} startLabel={routeStartLabel} />}
-            {stores.map((store) => (
-              <StoreMarker
-                key={store.id}
-                store={store}
-                isSelected={store.id === selectedStoreId}
-                isDimmed={shouldDimMarkers && !highlightedSet.has(store.id)}
-                onSelect={onStoreSelect}
-              />
-            ))}
+            {markerGroups.map((group) => {
+              const groupKey = clusterKey(group);
+              const shouldCluster = isMobile && group.length > 1;
+
+              if (shouldCluster && expandedClusterKey !== groupKey) {
+                const center = getGroupCenter(group);
+                return (
+                  <StoreCluster
+                    key={groupKey}
+                    stores={group}
+                    x={center.x}
+                    y={center.y}
+                    isExpanded={false}
+                    onToggle={() => setExpandedClusterKey(groupKey)}
+                    onSelect={onStoreSelect}
+                  />
+                );
+              }
+
+              if (shouldCluster) {
+                const center = getGroupCenter(group);
+                return (
+                  <StoreCluster
+                    key={`${groupKey}-expanded`}
+                    stores={group}
+                    x={center.x}
+                    y={center.y}
+                    isExpanded
+                    onToggle={() => setExpandedClusterKey(null)}
+                    onSelect={onStoreSelect}
+                  />
+                );
+              }
+
+              return group.map((store) => (
+                <StoreMarker
+                  key={store.id}
+                  store={store}
+                  isSelected={store.id === selectedStoreId}
+                  isDimmed={shouldDimMarkers && !highlightedSet.has(store.id)}
+                  onSelect={onStoreSelect}
+                />
+              ));
+            })}
             {showCorridors && <WalkableMaskEditor floor={floor} />}
             {showCorridors && lastMapPoint && (
               <span
@@ -123,6 +181,42 @@ export default function MapView({
       </div>
     </section>
   );
+}
+
+function groupStores(stores: Store[], shouldCluster: boolean) {
+  if (!shouldCluster) return stores.map((store) => [store]);
+
+  const groups: Store[][] = [];
+  const remaining = [...stores];
+  const clusterDistance = 5.5;
+
+  while (remaining.length > 0) {
+    const seed = remaining.shift();
+    if (!seed) break;
+
+    const group = [seed];
+    for (let index = remaining.length - 1; index >= 0; index -= 1) {
+      const candidate = remaining[index];
+      if (Math.hypot(candidate.x - seed.x, candidate.y - seed.y) <= clusterDistance) {
+        group.push(candidate);
+        remaining.splice(index, 1);
+      }
+    }
+    groups.push(group);
+  }
+
+  return groups;
+}
+
+function getGroupCenter(group: Store[]) {
+  return group.reduce(
+    (center, store) => ({ x: center.x + store.x / group.length, y: center.y + store.y / group.length }),
+    { x: 0, y: 0 }
+  );
+}
+
+function clusterKey(group: Store[]) {
+  return group.map((store) => store.id).sort().join("|");
 }
 
 function PlaceholderMap({ floor }: { floor: Floor }) {

@@ -22,6 +22,7 @@ jobs:
       VITE_ADMIN_PASSWORD: ${{ secrets.VITE_ADMIN_PASSWORD }}
       VITE_SUPABASE_URL: ${{ secrets.VITE_SUPABASE_URL }}
       VITE_SUPABASE_ANON_KEY: ${{ secrets.VITE_SUPABASE_ANON_KEY }}
+      VITE_APP_VERSION: ${{ github.sha }}
 
     steps:
       - name: Checkout
@@ -35,6 +36,10 @@ jobs:
 
       - name: Install dependencies
         run: npm ci
+
+      - name: Set build metadata
+        shell: bash
+        run: echo "VITE_BUILD_TIME=$(date -u +'%Y-%m-%dT%H:%M:%SZ')" >> "$GITHUB_ENV"
 
       - name: Build
         run: npm run build
