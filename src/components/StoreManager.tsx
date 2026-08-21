@@ -74,6 +74,7 @@ export default function StoreManager({
   const [password, setPassword] = useState("");
   const [loginError, setLoginError] = useState("");
   const [editingId, setEditingId] = useState("");
+  const [isResetConfirming, setIsResetConfirming] = useState(false);
   const [form, setForm] = useState<StoreForm>(emptyForm);
 
   const editableCategories = useMemo(() => categories.filter((category) => category !== "전체"), []);
@@ -215,6 +216,7 @@ export default function StoreManager({
 
   const handleNew = () => {
     setEditingId("");
+    setIsResetConfirming(false);
     setForm(emptyForm);
   };
 
@@ -237,6 +239,7 @@ export default function StoreManager({
     setAdminSignedIn(false);
     setIsSignedIn(false);
     setIsModalOpen(false);
+    setIsResetConfirming(false);
     handleNew();
   };
 
@@ -491,13 +494,41 @@ export default function StoreManager({
                     <button
                       type="button"
                       onClick={() => {
-                        onReset();
-                        handleNew();
+                        setIsResetConfirming(true);
                       }}
                       className="min-h-11 rounded-lg border border-slate-200 bg-slate-50 px-4 text-sm font-bold text-slate-600"
                     >
                       {isSupabaseConfigured ? "DB 매장 전체 삭제" : "기본 데이터로 되돌리기"}
                     </button>
+                    {isResetConfirming && (
+                      <div className="grid gap-2 rounded-lg border border-rose-200 bg-rose-50 p-3">
+                        <p className="text-sm font-bold leading-5 text-rose-800">
+                          {isSupabaseConfigured
+                            ? "DB의 모든 매장 정보가 삭제됩니다. 이 작업은 되돌릴 수 없습니다."
+                            : "저장된 매장 정보를 기본 데이터로 되돌립니다."}
+                        </p>
+                        <div className="grid grid-cols-2 gap-2">
+                          <button
+                            type="button"
+                            onClick={() => setIsResetConfirming(false)}
+                            className="min-h-10 rounded-lg border border-slate-200 bg-white px-3 text-sm font-black text-slate-700"
+                          >
+                            취소
+                          </button>
+                          <button
+                            type="button"
+                            onClick={() => {
+                              onReset();
+                              setIsResetConfirming(false);
+                              handleNew();
+                            }}
+                            className="min-h-10 rounded-lg bg-rose-600 px-3 text-sm font-black text-white"
+                          >
+                            계속 진행
+                          </button>
+                        </div>
+                      </div>
+                    )}
                   </form>
                 </>
               )}

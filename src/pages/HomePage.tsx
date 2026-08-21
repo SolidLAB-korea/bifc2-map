@@ -31,19 +31,24 @@ export default function HomePage() {
   const [pickedRoutePoint, setPickedRoutePoint] = useState<RoutePoint | null>(null);
   const [routeGraphVersion, setRouteGraphVersion] = useState(0);
   const [isAdmin, setIsAdmin] = useState(() => isAdminSignedIn());
-  const [storeItems, setStoreItems] = useState<Store[]>(defaultStores);
+  const [storeItems, setStoreItems] = useState<Store[]>([]);
+  const [isStoresLoading, setIsStoresLoading] = useState(true);
   const [storeError, setStoreError] = useState("");
 
   useEffect(() => {
     const syncStores = () => {
+      setIsStoresLoading(true);
       loadStores(defaultStores)
         .then((nextStores) => {
           setStoreItems(nextStores);
           setStoreError("");
         })
         .catch((error: Error) => {
-          setStoreItems(defaultStores);
+          setStoreItems([]);
           setStoreError(error.message);
+        })
+        .finally(() => {
+          setIsStoresLoading(false);
         });
     };
 
@@ -93,7 +98,7 @@ export default function HomePage() {
 
     return visibleStores.filter((store) => {
       const categoryMatched = selectedCategory === "전체" || store.category === selectedCategory;
-      const floorMatched = store.floor === selectedFloor;
+      const floorMatched = normalizedQuery.length > 0 || store.floor === selectedFloor;
       const searchTarget = [
         store.name,
         store.translations?.en?.name,
@@ -295,10 +300,16 @@ export default function HomePage() {
           <div className="mb-3 flex items-center justify-between gap-3">
             <h2 className="text-lg font-black text-primary">{t("searchResults")}</h2>
             <span className="rounded-full bg-blue-50 px-3 py-1 text-sm font-bold text-accent">
-              {filteredStores.length} {t("placesCount")}
+              {isStoresLoading ? "..." : `${filteredStores.length} ${t("placesCount")}`}
             </span>
           </div>
-          <StoreList stores={filteredStores} selectedStoreId={selectedStore?.id} onStoreSelect={handleStoreSelect} />
+          {isStoresLoading ? (
+            <p className="rounded-lg border border-dashed border-slate-300 bg-slate-50 px-4 py-10 text-center text-sm font-bold text-slate-500">
+              {t("loadingStore")}
+            </p>
+          ) : (
+            <StoreList stores={filteredStores} selectedStoreId={selectedStore?.id} onStoreSelect={handleStoreSelect} />
+          )}
         </section>
       </div>
 
