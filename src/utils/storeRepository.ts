@@ -1,5 +1,6 @@
 import type { Store } from "../types/store";
 import { cacheStoredStores, getStoredStores, resetStoredStores, setStoredStores } from "./storage";
+import { supabaseClient } from "./supabaseClient";
 
 type SupabaseStoreRow = Omit<Store, "routeAnchorId"> & {
   route_anchor_id?: string | null;
@@ -97,11 +98,12 @@ async function upsertStores(stores: Store[]) {
 }
 
 async function requestSupabase<T>(query: string, options: RequestInit = {}): Promise<T> {
+  const accessToken = (await supabaseClient?.auth.getSession())?.data.session?.access_token ?? supabaseAnonKey;
   const response = await fetch(`${storesEndpoint}${query}`, {
     ...options,
     headers: {
       apikey: supabaseAnonKey,
-      Authorization: `Bearer ${supabaseAnonKey}`,
+      Authorization: `Bearer ${accessToken}`,
       "Content-Type": "application/json",
       ...(options.headers ?? {})
     }

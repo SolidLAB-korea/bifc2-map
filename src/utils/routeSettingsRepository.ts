@@ -1,7 +1,7 @@
 import type { Floor } from "../types/store";
 import type { RouteGraph, RouteStartNodeMap } from "./indoorRoute";
 import type { WalkableMask } from "./walkableMask";
-import { getSupabaseAnonKey, getSupabaseUrl, isSupabaseClientConfigured } from "./supabaseClient";
+import { getSupabaseAnonKey, getSupabaseUrl, isSupabaseClientConfigured, supabaseClient } from "./supabaseClient";
 
 type RouteSettingRow = {
   floor: Floor;
@@ -67,11 +67,12 @@ async function upsertRouteSettings(settings: RouteSettingUpdate[]) {
 }
 
 async function requestSupabase<T>(query: string, options: RequestInit = {}): Promise<T> {
+  const accessToken = (await supabaseClient?.auth.getSession())?.data.session?.access_token ?? supabaseAnonKey;
   const response = await fetch(`${routeSettingsEndpoint}${query}`, {
     ...options,
     headers: {
       apikey: supabaseAnonKey,
-      Authorization: `Bearer ${supabaseAnonKey}`,
+      Authorization: `Bearer ${accessToken}`,
       "Content-Type": "application/json",
       ...(options.headers ?? {})
     }

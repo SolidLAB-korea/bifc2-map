@@ -16,7 +16,7 @@ import type { Floor, Store } from "../types/store";
 import type { RoutePoint } from "../utils/indoorRoute";
 import { createIndoorRoute, createIndoorRouteToPoint } from "../utils/indoorRoute";
 import { subscribeRouteSettingsRealtime, syncRouteSettingsFromDatabase } from "../utils/routeSettingsSync";
-import { isAdminSignedIn } from "../utils/storage";
+import { getAdminSessionState, subscribeAdminSession } from "../utils/adminAuth";
 import { createStore, deleteStore, getStoreDataSource, loadStores, resetStores, updateStore } from "../utils/storeRepository";
 import { subscribeStoresRealtime } from "../utils/storeSync";
 
@@ -32,7 +32,7 @@ export default function HomePage() {
   const [pickedCorridorPoint, setPickedCorridorPoint] = useState<RoutePoint | null>(null);
   const [pickedRoutePoint, setPickedRoutePoint] = useState<RoutePoint | null>(null);
   const [routeGraphVersion, setRouteGraphVersion] = useState(0);
-  const [isAdmin, setIsAdmin] = useState(() => isAdminSignedIn());
+  const [isAdmin, setIsAdmin] = useState(false);
   const [storeItems, setStoreItems] = useState<Store[]>([]);
   const [isStoresLoading, setIsStoresLoading] = useState(true);
   const [storeError, setStoreError] = useState("");
@@ -80,16 +80,23 @@ export default function HomePage() {
   }, [selectedStore, storeItems]);
 
   useEffect(() => {
-    const syncAdminState = () => setIsAdmin(isAdminSignedIn());
+    let isMounted = true;
+    const syncAdminState = () => {
+      getAdminSessionState().then((nextIsAdmin) => {
+        if (isMounted) setIsAdmin(nextIsAdmin);
+      });
+    };
     const syncRouteGraph = () => setRouteGraphVersion((version) => version + 1);
     syncRouteSettingsFromDatabase().catch((error: Error) => setStoreError(error.message));
     const unsubscribeRouteSettings = subscribeRouteSettingsRealtime((error) => setStoreError(error.message));
-    window.addEventListener("admin-session-updated", syncAdminState);
+    const unsubscribeAdminSession = subscribeAdminSession(syncAdminState);
+    syncAdminState();
     window.addEventListener("route-graph-updated", syncRouteGraph);
     window.addEventListener("route-mask-updated", syncRouteGraph);
     return () => {
+      isMounted = false;
       unsubscribeRouteSettings();
-      window.removeEventListener("admin-session-updated", syncAdminState);
+      unsubscribeAdminSession();
       window.removeEventListener("route-graph-updated", syncRouteGraph);
       window.removeEventListener("route-mask-updated", syncRouteGraph);
     };

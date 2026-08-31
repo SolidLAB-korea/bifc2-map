@@ -4,7 +4,7 @@ import { useI18n } from "../i18n";
 import BuildInfo from "./BuildInfo";
 import type { Floor, Store } from "../types/store";
 import { getRouteNodeOptions } from "../utils/indoorRoute";
-import { isAdminSignedIn, setAdminSignedIn } from "../utils/storage";
+import { getAdminSessionState, signInAdmin, signOutAdmin, subscribeAdminSession } from "../utils/adminAuth";
 import { isSupabaseConfigured } from "../utils/storeRepository";
 
 type StoreManagerProps = {
@@ -59,8 +59,6 @@ const emptyForm: StoreForm = {
   menu: ""
 };
 
-const adminPassword = import.meta.env.VITE_ADMIN_PASSWORD || "bifc2-admin";
-
 export default function StoreManager({
   stores,
   onCreate,
@@ -72,7 +70,8 @@ export default function StoreManager({
 }: StoreManagerProps) {
   const { t } = useI18n();
   const [isModalOpen, setIsModalOpen] = useState(false);
-  const [isSignedIn, setIsSignedIn] = useState(() => isAdminSignedIn());
+  const [isSignedIn, setIsSignedIn] = useState(false);
+  const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [loginError, setLoginError] = useState("");
   const [editingId, setEditingId] = useState("");
@@ -128,6 +127,21 @@ export default function StoreManager({
 
     return () => window.removeEventListener("keydown", handleKeyDown);
   }, [isModalOpen]);
+
+  useEffect(() => {
+    let isMounted = true;
+    const syncSession = () => {
+      getAdminSessionState().then((nextIsSignedIn) => {
+        if (isMounted) setIsSignedIn(nextIsSignedIn);
+      });
+    };
+    const unsubscribe = subscribeAdminSession(syncSession);
+    syncSession();
+    return () => {
+      isMounted = false;
+      unsubscribe();
+    };
+  }, []);
 
   useEffect(() => {
     if (!isModalOpen) return;
@@ -225,21 +239,20 @@ export default function StoreManager({
 
   const selectedStore = stores.find((store) => store.id === editingId);
 
-  const handleSignIn = (event: FormEvent<HTMLFormElement>) => {
+  const handleSignIn = async (event: FormEvent<HTMLFormElement>) => {
     event.preventDefault();
-    if (password === adminPassword) {
-      setAdminSignedIn(true);
+    try {
+      await signInAdmin(email, password);
       setIsSignedIn(true);
       setPassword("");
       setLoginError("");
-      return;
+    } catch (error) {
+      setLoginError(error instanceof Error ? error.message : "관리자 로그인에 실패했습니다.");
     }
-
-    setLoginError("관리자 비밀번호가 올바르지 않습니다.");
   };
 
-  const handleSignOut = () => {
-    setAdminSignedIn(false);
+  const handleSignOut = async () => {
+    await signOutAdmin();
     setIsSignedIn(false);
     setIsModalOpen(false);
     setIsResetConfirming(false);
@@ -295,6 +308,17 @@ export default function StoreManager({
               {!isSignedIn ? (
                 <form className="grid gap-3" onSubmit={handleSignIn}>
                   <label className="grid gap-1 text-sm font-bold text-slate-700">
+                    관리자 이메일
+                    <input
+                      type="email"
+                      value={email}
+                      onChange={(event) => setEmail(event.target.value)}
+                      className="min-h-11 rounded-lg border border-slate-200 px-3 text-slate-900 outline-none focus:border-accent"
+                      autoComplete="email"
+                      required
+                    />
+                  </label>
+                  <label className="grid gap-1 text-sm font-bold text-slate-700">
                     관리자 비밀번호
                     <input
                       type="password"
@@ -302,6 +326,7 @@ export default function StoreManager({
                       onChange={(event) => setPassword(event.target.value)}
                       className="min-h-11 rounded-lg border border-slate-200 px-3 text-slate-900 outline-none focus:border-accent"
                       autoComplete="current-password"
+                      required
                     />
                   </label>
                   {loginError && <p className="text-sm font-bold text-rose-600">{loginError}</p>}

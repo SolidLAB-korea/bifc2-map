@@ -29,6 +29,7 @@ add column if not exists route_anchor_id text;
 create or replace function public.set_store_updated_at()
 returns trigger
 language plpgsql
+set search_path = pg_catalog
 as $$
 begin
   new.updated_at = now();
@@ -45,19 +46,27 @@ execute function public.set_store_updated_at();
 alter table public.stores enable row level security;
 
 drop policy if exists "Stores are readable by everyone" on public.stores;
-create policy "Stores are readable by everyone"
+drop policy if exists "Stores are publicly readable" on public.stores;
+drop policy if exists "Stores are writable by anon app clients" on public.stores;
+drop policy if exists "Stores are writable by designated administrator" on public.stores;
+
+grant usage on schema public to anon, authenticated;
+revoke all privileges on public.stores from anon, authenticated;
+grant select on public.stores to anon, authenticated;
+grant insert, update, delete on public.stores to authenticated;
+
+create policy "Stores are publicly readable"
 on public.stores
 for select
-to anon
+to anon, authenticated
 using (true);
 
-drop policy if exists "Stores are writable by anon app clients" on public.stores;
-create policy "Stores are writable by anon app clients"
+create policy "Stores are writable by designated administrator"
 on public.stores
 for all
-to anon
-using (true)
-with check (true);
+to authenticated
+using ((select auth.uid()) = 'e0218862-5c5b-4b90-b885-7e36eb02c326'::uuid)
+with check ((select auth.uid()) = 'e0218862-5c5b-4b90-b885-7e36eb02c326'::uuid);
 
 create table if not exists public.route_settings (
   floor text primary key check (floor in ('1F', '2F', '3F')),
@@ -70,6 +79,7 @@ create table if not exists public.route_settings (
 create or replace function public.set_route_settings_updated_at()
 returns trigger
 language plpgsql
+set search_path = pg_catalog
 as $$
 begin
   new.updated_at = now();
@@ -86,19 +96,26 @@ execute function public.set_route_settings_updated_at();
 alter table public.route_settings enable row level security;
 
 drop policy if exists "Route settings are readable by everyone" on public.route_settings;
-create policy "Route settings are readable by everyone"
+drop policy if exists "Route settings are publicly readable" on public.route_settings;
+drop policy if exists "Route settings are writable by anon app clients" on public.route_settings;
+drop policy if exists "Route settings are writable by designated administrator" on public.route_settings;
+
+revoke all privileges on public.route_settings from anon, authenticated;
+grant select on public.route_settings to anon, authenticated;
+grant insert, update, delete on public.route_settings to authenticated;
+
+create policy "Route settings are publicly readable"
 on public.route_settings
 for select
-to anon
+to anon, authenticated
 using (true);
 
-drop policy if exists "Route settings are writable by anon app clients" on public.route_settings;
-create policy "Route settings are writable by anon app clients"
+create policy "Route settings are writable by designated administrator"
 on public.route_settings
 for all
-to anon
-using (true)
-with check (true);
+to authenticated
+using ((select auth.uid()) = 'e0218862-5c5b-4b90-b885-7e36eb02c326'::uuid)
+with check ((select auth.uid()) = 'e0218862-5c5b-4b90-b885-7e36eb02c326'::uuid);
 
 do $$
 begin

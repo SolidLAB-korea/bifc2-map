@@ -2,7 +2,6 @@ import type { Store } from "../types/store";
 
 const favoriteStoreKey = "bifc2.favoriteStoreIds";
 const storeDataKey = "bifc2.storeData";
-const adminSessionKey = "bifc2.adminSession";
 
 export function getStoredStores(defaultStores: Store[]): Store[] {
   try {
@@ -56,17 +55,4 @@ export function toggleFavoriteStore(id: string) {
   setFavoriteIds(nextFavorites);
   window.dispatchEvent(new Event("favorites-updated"));
   return nextFavorites.includes(id);
-}
-
-export function isAdminSignedIn() {
-  return window.sessionStorage.getItem(adminSessionKey) === "true";
-}
-
-export function setAdminSignedIn(isSignedIn: boolean) {
-  if (isSignedIn) {
-    window.sessionStorage.setItem(adminSessionKey, "true");
-  } else {
-    window.sessionStorage.removeItem(adminSessionKey);
-  }
-  window.dispatchEvent(new Event("admin-session-updated"));
 }
