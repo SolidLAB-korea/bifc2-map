@@ -7,6 +7,7 @@ import { useI18n } from "../i18n";
 import type { Floor, Store } from "../types/store";
 import { getFavoriteIds } from "../utils/storage";
 import { loadStores } from "../utils/storeRepository";
+import { subscribeStoresRealtime } from "../utils/storeSync";
 
 export default function FavoritesPage() {
   const { categoryLabel, storeText, t } = useI18n();
@@ -31,11 +32,18 @@ export default function FavoritesPage() {
         .catch(() => setStoreItems(defaultStores));
     };
     syncStores();
+    const unsubscribeStores = subscribeStoresRealtime(syncStores);
     window.addEventListener("stores-updated", syncStores);
     return () => {
+      unsubscribeStores();
       window.removeEventListener("stores-updated", syncStores);
     };
   }, []);
+
+  useEffect(() => {
+    if (!selectedStore) return;
+    setSelectedStore(storeItems.find((store) => store.id === selectedStore.id) ?? null);
+  }, [selectedStore, storeItems]);
 
   const favoriteStores = useMemo(
     () => storeItems.filter((store) => floors.includes(store.floor as Floor) && favoriteIds.includes(store.id)),

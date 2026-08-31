@@ -17,7 +17,8 @@ import type { RoutePoint } from "../utils/indoorRoute";
 import { createIndoorRoute, createIndoorRouteToPoint } from "../utils/indoorRoute";
 import { subscribeRouteSettingsRealtime, syncRouteSettingsFromDatabase } from "../utils/routeSettingsSync";
 import { isAdminSignedIn } from "../utils/storage";
-import { createStore, deleteStore, loadStores, resetStores, updateStore } from "../utils/storeRepository";
+import { createStore, deleteStore, getStoreDataSource, loadStores, resetStores, updateStore } from "../utils/storeRepository";
+import { subscribeStoresRealtime } from "../utils/storeSync";
 
 export default function HomePage() {
   const { categoryLabel, language, storeText, t } = useI18n();
@@ -35,6 +36,7 @@ export default function HomePage() {
   const [storeItems, setStoreItems] = useState<Store[]>([]);
   const [isStoresLoading, setIsStoresLoading] = useState(true);
   const [storeError, setStoreError] = useState("");
+  const [storeNotice, setStoreNotice] = useState("");
 
   useEffect(() => {
     const syncStores = () => {
@@ -42,7 +44,7 @@ export default function HomePage() {
       loadStores(defaultStores)
         .then((nextStores) => {
           setStoreItems(nextStores);
-          setStoreError("");
+          setStoreNotice(getStoreDataSource() === "local-fallback" ? t("offlineData") : "");
         })
         .catch((error: Error) => {
           setStoreItems([]);
@@ -54,11 +56,28 @@ export default function HomePage() {
     };
 
     syncStores();
+    const unsubscribeStores = subscribeStoresRealtime(syncStores, (error) => setStoreError(error.message));
     window.addEventListener("stores-updated", syncStores);
     return () => {
+      unsubscribeStores();
       window.removeEventListener("stores-updated", syncStores);
     };
-  }, []);
+  }, [t]);
+
+  useEffect(() => {
+    if (!selectedStore) return;
+
+    const refreshedStore = storeItems.find((store) => store.id === selectedStore.id);
+    if (!refreshedStore) {
+      setSelectedStore(null);
+      setIsSheetOpen(false);
+      return;
+    }
+
+    if (refreshedStore !== selectedStore) {
+      setSelectedStore(refreshedStore);
+    }
+  }, [selectedStore, storeItems]);
 
   useEffect(() => {
     const syncAdminState = () => setIsAdmin(isAdminSignedIn());
@@ -322,6 +341,11 @@ export default function HomePage() {
             {storeError}
           </p>
         )}
+        {storeNotice && (
+          <p className="rounded-lg border border-amber-200 bg-amber-50 px-4 py-3 text-sm font-bold text-amber-800">
+            {storeNotice}
+          </p>
+        )}
         <StoreManager
           stores={visibleStoreItems}
           onCreate={handleCreateStore}
@@ -329,6 +353,7 @@ export default function HomePage() {
           onDelete={handleDeleteStore}
           onReset={handleResetStores}
           onSelectStore={handleStoreSelect}
+          readOnly={getStoreDataSource() === "local-fallback"}
         />
       </section>
 

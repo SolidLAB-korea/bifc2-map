@@ -14,6 +14,7 @@ type StoreManagerProps = {
   onDelete: (storeId: string) => void;
   onReset: () => void;
   onSelectStore: (store: Store) => void;
+  readOnly?: boolean;
 };
 
 type StoreForm = Omit<Store, "keywords" | "links" | "translations"> & {
@@ -66,7 +67,8 @@ export default function StoreManager({
   onUpdate,
   onDelete,
   onReset,
-  onSelectStore
+  onSelectStore,
+  readOnly = false
 }: StoreManagerProps) {
   const { t } = useI18n();
   const [isModalOpen, setIsModalOpen] = useState(false);
@@ -155,6 +157,7 @@ export default function StoreManager({
 
   const handleSubmit = (event: FormEvent<HTMLFormElement>) => {
     event.preventDefault();
+    if (readOnly) return;
     const {
       keywordsText,
       nameEn,
@@ -308,6 +311,11 @@ export default function StoreManager({
                 </form>
               ) : (
                 <>
+                  {readOnly && (
+                    <p className="mb-3 rounded-lg border border-amber-200 bg-amber-50 px-3 py-2 text-sm font-bold leading-5 text-amber-800">
+                      데이터 연결이 복구될 때까지 매장 정보를 읽기 전용으로 표시합니다.
+                    </p>
+                  )}
                   <div className="mb-4 flex items-center justify-between gap-3 rounded-lg bg-blue-50 px-3 py-2">
                     <span className="text-sm font-bold text-primary">관리자 로그인 상태입니다.</span>
                     <button
@@ -466,7 +474,11 @@ export default function StoreManager({
                     </label>
 
                     <div className="grid gap-2 sm:grid-cols-3">
-                      <button type="submit" className="min-h-12 rounded-lg bg-accent px-4 text-sm font-black text-white">
+                      <button
+                        type="submit"
+                        disabled={readOnly}
+                        className="min-h-12 rounded-lg bg-accent px-4 text-sm font-black text-white disabled:cursor-not-allowed disabled:opacity-45"
+                      >
                         {isEditing ? "수정 저장" : "매장 추가"}
                       </button>
                       <button
@@ -484,8 +496,8 @@ export default function StoreManager({
                           onDelete(editingId);
                           handleNew();
                         }}
-                        disabled={!editingId}
-                        className="min-h-12 rounded-lg border border-rose-200 bg-rose-50 px-4 text-sm font-black text-rose-700 disabled:opacity-40"
+                        disabled={!editingId || readOnly}
+                        className="min-h-12 rounded-lg border border-rose-200 bg-rose-50 px-4 text-sm font-black text-rose-700 disabled:cursor-not-allowed disabled:opacity-40"
                       >
                         삭제
                       </button>
@@ -494,9 +506,11 @@ export default function StoreManager({
                     <button
                       type="button"
                       onClick={() => {
+                        if (readOnly) return;
                         setIsResetConfirming(true);
                       }}
-                      className="min-h-11 rounded-lg border border-slate-200 bg-slate-50 px-4 text-sm font-bold text-slate-600"
+                      disabled={readOnly}
+                      className="min-h-11 rounded-lg border border-slate-200 bg-slate-50 px-4 text-sm font-bold text-slate-600 disabled:cursor-not-allowed disabled:opacity-45"
                     >
                       {isSupabaseConfigured ? "DB 매장 전체 삭제" : "기본 데이터로 되돌리기"}
                     </button>
@@ -518,11 +532,13 @@ export default function StoreManager({
                           <button
                             type="button"
                             onClick={() => {
+                              if (readOnly) return;
                               onReset();
                               setIsResetConfirming(false);
                               handleNew();
                             }}
-                            className="min-h-10 rounded-lg bg-rose-600 px-3 text-sm font-black text-white"
+                            disabled={readOnly}
+                            className="min-h-10 rounded-lg bg-rose-600 px-3 text-sm font-black text-white disabled:cursor-not-allowed disabled:opacity-45"
                           >
                             계속 진행
                           </button>

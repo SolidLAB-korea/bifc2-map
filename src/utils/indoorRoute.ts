@@ -194,14 +194,14 @@ export function hydrateRouteSettings(settings: RouteSettingSnapshot[]) {
   window.dispatchEvent(new Event("route-graph-updated"));
 }
 
-export function createIndoorRoute(store: Store, stores: Store[] = []): IndoorRoute {
+export function createIndoorRoute(store: Store, _stores: Store[] = []): IndoorRoute {
   const floor = store.floor as Floor;
   const destination = { x: store.x, y: store.y };
   const routeGraph = getRouteGraph();
   const graph = routeGraph[floor] ?? routeGraph["1F"];
   const startNodeId = getSafeStartNodeId(floor, graph);
   const startNode = graph.find((routeNode) => routeNode.id === startNodeId);
-  const startPoint = findFloorEscalatorPoint(store, stores) ?? startNode?.point;
+  const startPoint = startNode?.point;
   const destinationNodeId = isEscalatorStore(store)
     ? startNodeId
     : hasNode(graph, store.routeAnchorId)
@@ -232,12 +232,12 @@ export function createIndoorRoute(store: Store, stores: Store[] = []): IndoorRou
   };
 }
 
-export function createIndoorRouteToPoint(floor: Floor, point: RoutePoint, stores: Store[] = []): IndoorRoute {
+export function createIndoorRouteToPoint(floor: Floor, point: RoutePoint, _stores: Store[] = []): IndoorRoute {
   const routeGraph = getRouteGraph();
   const graph = routeGraph[floor] ?? routeGraph["1F"];
   const startNodeId = getSafeStartNodeId(floor, graph);
   const startNode = graph.find((routeNode) => routeNode.id === startNodeId);
-  const startPoint = findFloorEscalatorPoint({ floor } as Store, stores) ?? startNode?.point;
+  const startPoint = startNode?.point;
   const destinationNodeId = findNearestNodeId(graph, point);
   const points =
     findWalkableRoute(floor, startPoint ?? startNode?.point ?? point, point) ??
@@ -281,14 +281,6 @@ function isEscalatorStore(store: Store) {
     .toLowerCase();
 
   return text.includes("에스컬레이터") || text.includes("escalator");
-}
-
-function findFloorEscalatorPoint(store: Store, stores: Store[]) {
-  if (store.floor === "1F") return undefined;
-  if (isEscalatorStore(store)) return { x: store.x, y: store.y };
-
-  const escalator = stores.find((item) => item.floor === store.floor && isEscalatorStore(item));
-  return escalator ? { x: escalator.x, y: escalator.y } : undefined;
 }
 
 function applyStartPoint(points: RoutePoint[], startPoint?: RoutePoint) {

@@ -19,6 +19,10 @@ export function setStoredStores(stores: Store[]) {
   window.dispatchEvent(new Event("stores-updated"));
 }
 
+export function cacheStoredStores(stores: Store[]) {
+  window.localStorage.setItem(storeDataKey, JSON.stringify(stores));
+}
+
 export function resetStoredStores(defaultStores: Store[]) {
   window.localStorage.removeItem(storeDataKey);
   window.dispatchEvent(new Event("stores-updated"));

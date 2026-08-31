@@ -8,6 +8,7 @@ import { useI18n } from "../i18n";
 import type { Floor, Store } from "../types/store";
 import { createIndoorRoute } from "../utils/indoorRoute";
 import { loadStores } from "../utils/storeRepository";
+import { subscribeStoresRealtime } from "../utils/storeSync";
 
 export default function StoreDetailPage() {
   const { categoryLabel, language, storeText, t } = useI18n();
@@ -27,8 +28,10 @@ export default function StoreDetailPage() {
     };
 
     syncStores();
+    const unsubscribeStores = subscribeStoresRealtime(syncStores);
     window.addEventListener("stores-updated", syncStores);
     return () => {
+      unsubscribeStores();
       window.removeEventListener("stores-updated", syncStores);
     };
   }, []);
@@ -77,16 +80,23 @@ export default function StoreDetailPage() {
           <div className="mt-3 grid gap-2">
             <ActionLink label={t("viewOnMap")} href={`/?floor=${store.floor}&store=${store.id}`} internal variant="primary" />
             <ActionLink label={t("call")} href={createPhoneHref(store.phone)} disabled={!createPhoneHref(store.phone)} />
-            <ActionLink label={t("naverPlace")} href={store.links?.naverPlace || createNaverSearchUrl(storeText(store, "name"))} external />
-            <ActionLink label={t("reservation")} href={store.links?.naverReservation} external disabled={!store.links?.naverReservation} />
-            <ActionLink label={t("reviews")} href={store.links?.blogSearch || createNaverBlogSearchUrl(storeText(store, "name"))} external />
+            <ActionLink
+              label={t("naverPlace")}
+              href={normalizeExternalUrl(store.links?.naverPlace) || createNaverSearchUrl(storeText(store, "name"))}
+              external
+            />
+            <ActionLink label={t("reservation")} href={normalizeExternalUrl(store.links?.naverReservation)} external />
+            <ActionLink
+              label={t("reviews")}
+              href={normalizeExternalUrl(store.links?.blogSearch) || createNaverBlogSearchUrl(storeText(store, "name"))}
+              external
+            />
             <ActionLink
               label={t("officialChannel")}
-              href={store.links?.website || store.links?.instagram}
+              href={firstExternalUrl(store.links?.website, store.links?.instagram)}
               external
-              disabled={!store.links?.website && !store.links?.instagram}
             />
-            <ActionLink label={t("menu")} href={store.links?.menu} external disabled={!store.links?.menu} />
+            <ActionLink label={t("menu")} href={normalizeExternalUrl(store.links?.menu)} external />
           </div>
         </section>
 
@@ -165,4 +175,21 @@ function createNaverSearchUrl(storeName: string) {
 
 function createNaverBlogSearchUrl(storeName: string) {
   return `https://search.naver.com/search.naver?where=blog&query=${encodeURIComponent(storeName)}`;
+}
+
+function firstExternalUrl(...urls: Array<string | undefined>) {
+  return urls.map(normalizeExternalUrl).find(Boolean) || "";
+}
+
+function normalizeExternalUrl(url?: string) {
+  const value = url?.trim();
+  if (!value) return "";
+
+  try {
+    const normalized = /^[a-z][a-z\d+.-]*:/i.test(value) ? value : `https://${value}`;
+    const parsed = new URL(normalized);
+    return parsed.protocol === "https:" || parsed.protocol === "http:" ? parsed.href : "";
+  } catch {
+    return "";
+  }
 }

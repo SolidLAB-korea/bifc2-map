@@ -1,5 +1,5 @@
 import type { Store } from "../types/store";
-import { getStoredStores, resetStoredStores, setStoredStores } from "./storage";
+import { cacheStoredStores, getStoredStores, resetStoredStores, setStoredStores } from "./storage";
 
 type SupabaseStoreRow = Omit<Store, "routeAnchorId"> & {
   route_anchor_id?: string | null;
@@ -10,14 +10,30 @@ const supabaseAnonKey = import.meta.env.VITE_SUPABASE_ANON_KEY;
 const storesEndpoint = supabaseUrl ? `${supabaseUrl.replace(/\/$/, "")}/rest/v1/stores` : "";
 
 export const isSupabaseConfigured = Boolean(supabaseUrl && supabaseAnonKey);
+export type StoreDataSource = "supabase" | "local" | "local-fallback";
+
+let storeDataSource: StoreDataSource = isSupabaseConfigured ? "supabase" : "local";
+
+export function getStoreDataSource() {
+  return storeDataSource;
+}
 
 export async function loadStores(defaultStores: Store[]): Promise<Store[]> {
   if (!isSupabaseConfigured) {
+    storeDataSource = "local";
     return getStoredStores(defaultStores);
   }
 
-  const stores = await requestSupabase<Store[]>("?select=*&order=floor.asc,name.asc");
-  return stores.map(normalizeStore);
+  try {
+    const stores = await requestSupabase<Store[]>("?select=*&order=floor.asc,name.asc");
+    const normalizedStores = stores.map(normalizeStore);
+    storeDataSource = "supabase";
+    cacheStoredStores(normalizedStores);
+    return normalizedStores;
+  } catch {
+    storeDataSource = "local-fallback";
+    return getStoredStores(defaultStores);
+  }
 }
 
 export async function createStore(store: Store, currentStores: Store[]): Promise<Store[]> {
