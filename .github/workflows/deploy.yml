@@ -44,6 +44,12 @@ jobs:
       - name: Build
         run: npm run build
 
+      - name: Verify Pages files
+        shell: bash
+        run: |
+          test -s dist/ads.txt
+          test -s dist/CNAME
+
       - name: Upload Pages artifact
         uses: actions/upload-pages-artifact@v3
         with:

@@ -6,6 +6,7 @@ import FavoriteButton from "../components/FavoriteButton";
 import FloorSelector from "../components/FloorSelector";
 import MapView from "../components/MapView";
 import SearchBar from "../components/SearchBar";
+import SiteGuide from "../components/SiteGuide";
 import StoreBottomSheet, { StoreFacts } from "../components/StoreBottomSheet";
 import StoreList from "../components/StoreList";
 import StoreManager from "../components/StoreManager";
@@ -312,6 +313,8 @@ export default function HomePage() {
           )}
         </section>
       </div>
+
+      <SiteGuide />
 
       <section className="grid gap-3 border-t border-slate-200 pt-3 sm:pt-4">
         {storeError && (
