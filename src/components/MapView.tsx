@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useMemo, useState, type CSSProperties } from "react";
 import type { Floor, Store } from "../types/store";
 import type { RoutePoint } from "../utils/indoorRoute";
 import CorridorOverlay from "./CorridorOverlay";
@@ -32,6 +32,12 @@ const floorAspectRatioMap: Record<Floor, string> = {
   "1F": "1305 / 1205",
   "2F": "1382 / 1138",
   "3F": "1335 / 1178"
+};
+
+const floorRatioMap: Record<Floor, number> = {
+  "1F": 1305 / 1205,
+  "2F": 1382 / 1138,
+  "3F": 1335 / 1178
 };
 
 export default function MapView({
@@ -89,10 +95,13 @@ export default function MapView({
         </span>
       </div>
 
-      <div className="overflow-hidden">
+      <div className="flex justify-center overflow-hidden sm:block">
         <div
-          className="relative m-1 overflow-hidden rounded-md border border-slate-300 bg-slate-50 sm:m-3 sm:rounded-lg sm:border-2"
-          style={{ aspectRatio: floorAspectRatioMap[floor] }}
+          className="relative m-1 w-[min(calc(100vw-2rem),calc(31svh*var(--map-ratio)))] overflow-hidden rounded-md border border-slate-300 bg-slate-50 sm:m-3 sm:w-auto sm:rounded-lg sm:border-2"
+          style={{
+            aspectRatio: floorAspectRatioMap[floor],
+            "--map-ratio": floorRatioMap[floor]
+          } as CSSProperties}
           onClick={(event) => {
             const rect = event.currentTarget.getBoundingClientRect();
             const point = {
