@@ -51,6 +51,23 @@ export default function SiteGuide() {
 
   return (
     <section className="border-y border-slate-200 py-5 sm:py-7" aria-labelledby="site-guide-title">
+      <details className="group sm:hidden">
+        <summary className="flex cursor-pointer list-none items-center justify-between gap-3 text-sm font-black text-primary">
+          <span>{content.title}</span>
+          <span className="text-accent group-open:rotate-45" aria-hidden="true">+</span>
+        </summary>
+        <p className="mt-3 text-sm leading-6 text-slate-600">{content.intro}</p>
+        <div className="mt-4 grid gap-3">
+          {content.items.map((item) => (
+            <article key={item.title} className="border-l-2 border-accent/30 pl-3">
+              <h3 className="text-sm font-black text-primary">{item.title}</h3>
+              <p className="mt-1 text-sm leading-6 text-slate-600">{item.body}</p>
+            </article>
+          ))}
+        </div>
+        <p className="mt-4 rounded-lg bg-appbg px-3 py-2 text-xs font-bold leading-5 text-slate-600">{content.note}</p>
+      </details>
+      <div className="hidden sm:block">
       <div className="max-w-3xl">
         <h2 id="site-guide-title" className="text-xl font-black text-primary sm:text-2xl">
           {content.title}
@@ -66,6 +83,7 @@ export default function SiteGuide() {
         ))}
       </div>
       <p className="mt-5 rounded-lg bg-appbg px-4 py-3 text-xs font-bold leading-5 text-slate-600 sm:text-sm">{content.note}</p>
+      </div>
     </section>
   );
 }

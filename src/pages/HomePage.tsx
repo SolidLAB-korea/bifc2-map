@@ -323,10 +323,10 @@ export default function HomePage() {
           )}
         </section>
 
-        <section className="rounded-lg border border-slate-200 bg-white p-4 shadow-panel lg:sticky lg:top-24" aria-label={t("searchResults")}>
-          <div className="mb-3 flex items-center justify-between gap-3">
-            <h2 className="text-lg font-black text-primary">{t("searchResults")}</h2>
-            <span className="rounded-full bg-blue-50 px-3 py-1 text-sm font-bold text-accent">
+        <section className="rounded-lg border border-slate-200 bg-white p-3 shadow-panel sm:p-4 lg:sticky lg:top-24" aria-label={t("searchResults")}>
+          <div className="mb-2 flex items-center justify-between gap-3 sm:mb-3">
+            <h2 className="text-base font-black text-primary sm:text-lg">{t("searchResults")}</h2>
+            <span className="rounded-full bg-blue-50 px-2.5 py-1 text-xs font-bold text-accent sm:px-3 sm:text-sm">
               {isStoresLoading ? "..." : `${filteredStores.length} ${t("placesCount")}`}
             </span>
           </div>
@@ -335,7 +335,7 @@ export default function HomePage() {
               {t("loadingStore")}
             </p>
           ) : (
-            <StoreList stores={filteredStores} selectedStoreId={selectedStore?.id} onStoreSelect={handleStoreSelect} />
+            <StoreList stores={filteredStores} selectedStoreId={selectedStore?.id} onStoreSelect={handleStoreSelect} mobileCarousel />
           )}
         </section>
       </div>

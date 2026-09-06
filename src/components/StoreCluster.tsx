@@ -6,18 +6,21 @@ type StoreClusterProps = {
   x: number;
   y: number;
   isExpanded: boolean;
+  isMobile?: boolean;
   onToggle: () => void;
   onSelect: (store: Store) => void;
 };
 
-export default function StoreCluster({ stores, x, y, isExpanded, onToggle, onSelect }: StoreClusterProps) {
+export default function StoreCluster({ stores, x, y, isExpanded, isMobile = false, onToggle, onSelect }: StoreClusterProps) {
   const { storeText } = useI18n();
 
   if (isExpanded) {
     return (
       <div
-        className="absolute z-30 w-52 -translate-x-1/2 -translate-y-full rounded-lg border border-slate-200 bg-white p-1.5 shadow-xl"
-        style={{ left: `${x}%`, top: `${y}%` }}
+        className={`absolute z-30 rounded-lg border border-slate-200 bg-white p-1.5 shadow-xl ${
+          isMobile ? "inset-x-2 bottom-2" : "w-52 -translate-x-1/2 -translate-y-full"
+        }`}
+        style={isMobile ? undefined : { left: `${x}%`, top: `${y}%` }}
         onClick={(event) => event.stopPropagation()}
       >
         <div className="flex items-center justify-between gap-2 px-2 py-1">
@@ -31,13 +34,15 @@ export default function StoreCluster({ stores, x, y, isExpanded, onToggle, onSel
             ×
           </button>
         </div>
-        <div className="grid gap-1">
+        <div className={isMobile ? "flex gap-1 overflow-x-auto pb-0.5" : "grid gap-1"}>
           {stores.map((store) => (
             <button
               key={store.id}
               type="button"
               onClick={() => onSelect(store)}
-              className="min-h-10 truncate rounded-md px-2 text-left text-xs font-bold text-slate-800 hover:bg-blue-50"
+              className={`min-h-10 truncate rounded-md px-2 text-left text-xs font-bold text-slate-800 hover:bg-blue-50 ${
+                isMobile ? "w-36 shrink-0" : ""
+              }`}
               title={storeText(store, "name")}
             >
               {storeText(store, "name")} <span className="text-accent">· {store.floor}</span>

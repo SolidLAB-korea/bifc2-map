@@ -79,12 +79,12 @@ export default function MapView({
 
   return (
     <section className="overflow-hidden rounded-lg border border-slate-200 bg-white shadow-panel" aria-label={`${floor} 지도`}>
-      <div className="flex items-center justify-between border-b border-slate-200 px-3 py-1.5 sm:px-4 sm:py-3">
+      <div className="flex items-center justify-between border-b border-slate-200 px-3 py-1 sm:px-4 sm:py-3">
         <div>
           <p className="text-[11px] font-bold leading-none text-slate-500 sm:text-xs">현재 층</p>
-          <h2 className="text-lg font-black leading-tight text-primary sm:text-2xl">{floor}</h2>
+          <h2 className="text-base font-black leading-tight text-primary sm:text-2xl">{floor}</h2>
         </div>
-        <span className="rounded-full bg-blue-50 px-2.5 py-1 text-xs font-bold text-accent sm:px-3 sm:text-sm">
+        <span className="rounded-full bg-blue-50 px-2 py-0.5 text-[11px] font-bold text-accent sm:px-3 sm:py-1 sm:text-sm">
           {stores.length}곳
         </span>
       </div>
@@ -136,6 +136,7 @@ export default function MapView({
                     x={center.x}
                     y={center.y}
                     isExpanded={false}
+                    isMobile={isMobile}
                     onToggle={() => setExpandedClusterKey(groupKey)}
                     onSelect={onStoreSelect}
                   />
@@ -151,6 +152,7 @@ export default function MapView({
                     x={center.x}
                     y={center.y}
                     isExpanded
+                    isMobile={isMobile}
                     onToggle={() => setExpandedClusterKey(null)}
                     onSelect={onStoreSelect}
                   />

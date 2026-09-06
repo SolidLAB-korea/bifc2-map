@@ -15,7 +15,7 @@ export default function ThemeSelector({ selectedTheme, onSelect }: ThemeSelector
     <button
       type="button"
       onClick={() => onSelect(nextTheme.id)}
-      className="flex min-h-11 shrink-0 items-center gap-2 rounded-lg border border-white/30 px-3 py-2 text-xs font-black text-white sm:px-4 sm:py-3 sm:text-sm"
+      className="flex min-h-10 shrink-0 items-center gap-1.5 rounded-lg border border-white/30 px-2.5 py-2 text-xs font-black text-white sm:min-h-11 sm:gap-2 sm:px-4 sm:py-3 sm:text-sm"
       aria-label={`테마 변경: 현재 ${selectedThemeOption.label}, 다음 ${nextTheme.label}`}
       title={`Theme: ${selectedThemeOption.label}`}
     >
