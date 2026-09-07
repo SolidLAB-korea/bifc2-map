@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useState, type CSSProperties } from "react";
+import { useEffect, useMemo, useState } from "react";
 import type { Floor, Store } from "../types/store";
 import type { RoutePoint } from "../utils/indoorRoute";
 import CorridorOverlay from "./CorridorOverlay";
@@ -34,12 +34,6 @@ const floorAspectRatioMap: Record<Floor, string> = {
   "3F": "1335 / 1178"
 };
 
-const floorRatioMap: Record<Floor, number> = {
-  "1F": 1305 / 1205,
-  "2F": 1382 / 1138,
-  "3F": 1335 / 1178
-};
-
 export default function MapView({
   floor,
   stores,
@@ -54,30 +48,21 @@ export default function MapView({
 }: MapViewProps) {
   const [failedImages, setFailedImages] = useState<Record<string, boolean>>({});
   const [lastMapPoint, setLastMapPoint] = useState<RoutePoint | null>(null);
-  const [viewport, setViewport] = useState(getViewportSize);
+  const [isMobile, setIsMobile] = useState(false);
   const [expandedClusterKey, setExpandedClusterKey] = useState<string | null>(null);
-  const isMobile = viewport.width < 640;
   const imageSrc = floorImageMap[floor];
   const showPlaceholder = failedImages[floor];
   const highlightedSet = new Set(highlightedStoreIds);
   const shouldDimMarkers = highlightedStoreIds !== undefined;
   const markerGroups = useMemo(() => groupStores(stores, isMobile), [isMobile, stores]);
   const storeIdsKey = stores.map((store) => store.id).join("|");
-  const mobileMapWidth = isMobile
-    ? Math.min(viewport.width - 32, Math.max(230, Math.round(viewport.height * 0.25 * floorRatioMap[floor])))
-    : undefined;
 
   useEffect(() => {
-    const updateViewport = () => setViewport(getViewportSize());
-    const visualViewport = window.visualViewport;
-
+    const mediaQuery = window.matchMedia("(max-width: 639px)");
+    const updateViewport = () => setIsMobile(mediaQuery.matches);
     updateViewport();
-    window.addEventListener("resize", updateViewport);
-    visualViewport?.addEventListener("resize", updateViewport);
-    return () => {
-      window.removeEventListener("resize", updateViewport);
-      visualViewport?.removeEventListener("resize", updateViewport);
-    };
+    mediaQuery.addEventListener("change", updateViewport);
+    return () => mediaQuery.removeEventListener("change", updateViewport);
   }, []);
 
   useEffect(() => {
@@ -106,11 +91,8 @@ export default function MapView({
 
       <div className="flex justify-center overflow-hidden sm:block">
         <div
-          className="relative m-1 overflow-hidden rounded-md border border-slate-300 bg-slate-50 sm:m-3 sm:w-auto sm:rounded-lg sm:border-2"
-          style={{
-            aspectRatio: floorAspectRatioMap[floor],
-            width: mobileMapWidth ? `${mobileMapWidth}px` : undefined
-          } as CSSProperties}
+          className="relative m-1 w-[min(76vw,260px)] overflow-hidden rounded-md border border-slate-300 bg-slate-50 sm:m-3 sm:w-auto sm:rounded-lg sm:border-2"
+          style={{ aspectRatio: floorAspectRatioMap[floor] }}
           onClick={(event) => {
             const rect = event.currentTarget.getBoundingClientRect();
             const point = {
@@ -201,14 +183,6 @@ export default function MapView({
       </div>
     </section>
   );
-}
-
-function getViewportSize() {
-  const visualViewport = window.visualViewport;
-  return {
-    width: Math.round(visualViewport?.width ?? window.innerWidth),
-    height: Math.round(visualViewport?.height ?? window.innerHeight)
-  };
 }
 
 function groupStores(stores: Store[], shouldCluster: boolean) {
