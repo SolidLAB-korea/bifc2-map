@@ -54,21 +54,30 @@ export default function MapView({
 }: MapViewProps) {
   const [failedImages, setFailedImages] = useState<Record<string, boolean>>({});
   const [lastMapPoint, setLastMapPoint] = useState<RoutePoint | null>(null);
-  const [isMobile, setIsMobile] = useState(false);
+  const [viewport, setViewport] = useState(getViewportSize);
   const [expandedClusterKey, setExpandedClusterKey] = useState<string | null>(null);
+  const isMobile = viewport.width < 640;
   const imageSrc = floorImageMap[floor];
   const showPlaceholder = failedImages[floor];
   const highlightedSet = new Set(highlightedStoreIds);
   const shouldDimMarkers = highlightedStoreIds !== undefined;
   const markerGroups = useMemo(() => groupStores(stores, isMobile), [isMobile, stores]);
   const storeIdsKey = stores.map((store) => store.id).join("|");
+  const mobileMapWidth = isMobile
+    ? Math.min(viewport.width - 32, Math.max(230, Math.round(viewport.height * 0.25 * floorRatioMap[floor])))
+    : undefined;
 
   useEffect(() => {
-    const mediaQuery = window.matchMedia("(max-width: 639px)");
-    const updateViewport = () => setIsMobile(mediaQuery.matches);
+    const updateViewport = () => setViewport(getViewportSize());
+    const visualViewport = window.visualViewport;
+
     updateViewport();
-    mediaQuery.addEventListener("change", updateViewport);
-    return () => mediaQuery.removeEventListener("change", updateViewport);
+    window.addEventListener("resize", updateViewport);
+    visualViewport?.addEventListener("resize", updateViewport);
+    return () => {
+      window.removeEventListener("resize", updateViewport);
+      visualViewport?.removeEventListener("resize", updateViewport);
+    };
   }, []);
 
   useEffect(() => {
@@ -97,10 +106,10 @@ export default function MapView({
 
       <div className="flex justify-center overflow-hidden sm:block">
         <div
-          className="relative m-1 w-[min(calc(100vw-2rem),calc(31svh*var(--map-ratio)))] overflow-hidden rounded-md border border-slate-300 bg-slate-50 sm:m-3 sm:w-auto sm:rounded-lg sm:border-2"
+          className="relative m-1 overflow-hidden rounded-md border border-slate-300 bg-slate-50 sm:m-3 sm:w-auto sm:rounded-lg sm:border-2"
           style={{
             aspectRatio: floorAspectRatioMap[floor],
-            "--map-ratio": floorRatioMap[floor]
+            width: mobileMapWidth ? `${mobileMapWidth}px` : undefined
           } as CSSProperties}
           onClick={(event) => {
             const rect = event.currentTarget.getBoundingClientRect();
@@ -192,6 +201,14 @@ export default function MapView({
       </div>
     </section>
   );
+}
+
+function getViewportSize() {
+  const visualViewport = window.visualViewport;
+  return {
+    width: Math.round(visualViewport?.width ?? window.innerWidth),
+    height: Math.round(visualViewport?.height ?? window.innerHeight)
+  };
 }
 
 function groupStores(stores: Store[], shouldCluster: boolean) {
