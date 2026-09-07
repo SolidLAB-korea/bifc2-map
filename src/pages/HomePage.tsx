@@ -335,7 +335,7 @@ export default function HomePage() {
               {t("loadingStore")}
             </p>
           ) : (
-            <StoreList stores={filteredStores} selectedStoreId={selectedStore?.id} onStoreSelect={handleStoreSelect} mobileCarousel />
+            <StoreList stores={filteredStores} selectedStoreId={selectedStore?.id} onStoreSelect={handleStoreSelect} />
           )}
         </section>
       </div>

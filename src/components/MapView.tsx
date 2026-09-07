@@ -89,9 +89,9 @@ export default function MapView({
         </span>
       </div>
 
-      <div className="flex justify-center overflow-hidden sm:block">
+      <div className="overflow-hidden">
         <div
-          className="relative m-1 w-[min(76vw,260px)] overflow-hidden rounded-md border border-slate-300 bg-slate-50 sm:m-3 sm:w-auto sm:rounded-lg sm:border-2"
+          className="relative m-1 overflow-hidden rounded-md border border-slate-300 bg-slate-50 sm:m-3 sm:rounded-lg sm:border-2"
           style={{ aspectRatio: floorAspectRatioMap[floor] }}
           onClick={(event) => {
             const rect = event.currentTarget.getBoundingClientRect();
