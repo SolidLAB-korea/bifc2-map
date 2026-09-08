@@ -1,6 +1,5 @@
 import { useEffect, useRef, useState } from "react";
 import { Link } from "react-router-dom";
-import { TransformComponent, TransformWrapper } from "react-zoom-pan-pinch";
 import { categories, floors } from "../data/stores";
 import { useI18n } from "../i18n";
 import type { Floor, Store } from "../types/store";
@@ -76,129 +75,98 @@ export default function MobileMapExplorer({
 
   return (
     <section className="relative h-[calc(100dvh-8.5rem)] min-h-[30rem] overflow-hidden bg-slate-100 sm:hidden" aria-label={`${floor} ${t("map")}`}>
-      <TransformWrapper
-        key={floor}
-        initialScale={1}
-        minScale={0.8}
-        maxScale={3}
-        centerOnInit
-        limitToBounds={false}
-        panning={{ velocityDisabled: true }}
-        wheel={{ step: 0.12 }}
-      >
-        {({ resetTransform, zoomIn, zoomOut }) => (
-          <>
-            <TransformComponent wrapperClass="!h-full !w-full" contentClass="!h-auto !w-full">
-              <div className="relative w-screen bg-white" style={{ aspectRatio: floorAspectRatioMap[floor] }}>
-                {!imageFailed ? (
-                  <img
-                    src={floorImageMap[floor]}
-                    alt={`${floor} ${t("floorMap")}`}
-                    className="absolute inset-0 h-full w-full object-contain"
-                    onError={() => setImageFailed(true)}
-                  />
-                ) : (
-                  <div className="absolute inset-0 grid place-items-center bg-slate-50 text-sm font-bold text-slate-500">{floor} map</div>
-                )}
-                {routePoints && <RouteOverlay points={routePoints} />}
-                {stores.map((store) => (
-                  <StoreMarker
-                    key={store.id}
-                    store={store}
-                    isSelected={store.id === selectedStore?.id}
-                    isDimmed={results.length > 0 && !results.some((result) => result.id === store.id)}
-                    onSelect={selectStore}
-                  />
-                ))}
-              </div>
-            </TransformComponent>
+      <div className="absolute inset-x-0 top-0 z-0 overflow-hidden bg-white">
+        <div className="relative w-full" style={{ aspectRatio: floorAspectRatioMap[floor] }}>
+          {!imageFailed ? (
+            <img
+              src={floorImageMap[floor]}
+              alt={`${floor} ${t("floorMap")}`}
+              className="absolute inset-0 h-full w-full object-contain"
+              onError={() => setImageFailed(true)}
+            />
+          ) : (
+            <div className="absolute inset-0 grid place-items-center bg-slate-50 text-sm font-bold text-slate-500">{floor} map</div>
+          )}
+          {routePoints && <RouteOverlay points={routePoints} />}
+          {stores.map((store) => (
+            <StoreMarker
+              key={store.id}
+              store={store}
+              isSelected={store.id === selectedStore?.id}
+              isDimmed={results.length > 0 && !results.some((result) => result.id === store.id)}
+              onSelect={selectStore}
+            />
+          ))}
+        </div>
+      </div>
 
-            <div className="pointer-events-none absolute inset-x-0 top-0 z-20 p-3">
-              <div className="pointer-events-auto flex gap-2">
-                {isSearchOpen ? (
-                  <div className="flex-1 rounded-xl border border-slate-200 bg-white p-2 shadow-xl">
-                    <div className="flex items-center gap-2">
-                      <label className="flex min-h-10 flex-1 items-center gap-2 rounded-lg bg-slate-50 px-3">
-                        <span className="text-base font-black text-accent" aria-hidden="true">⌕</span>
-                        <input
-                          autoFocus
-                          value={query}
-                          onChange={(event) => onQueryChange(event.target.value)}
-                          placeholder={t("searchPlaceholder")}
-                          className="min-w-0 flex-1 bg-transparent text-sm outline-none"
-                          type="search"
-                          aria-label={t("searchAria")}
-                        />
-                      </label>
-                      <button
-                        type="button"
-                        onClick={() => setIsSearchOpen(false)}
-                        className="flex h-10 w-10 items-center justify-center rounded-lg bg-slate-100 text-lg font-black text-slate-700"
-                        aria-label={t("close")}
-                      >
-                        ×
-                      </button>
-                    </div>
-                    <select
-                      value={selectedCategory}
-                      onChange={(event) => onCategoryChange(event.target.value)}
-                      className="mt-2 h-10 w-full rounded-lg border border-slate-200 bg-white px-3 text-sm font-bold text-slate-800"
-                      aria-label={t("categorySelect")}
-                    >
-                      {categories.map((category) => (
-                        <option key={category} value={category}>
-                          {categoryLabel(category)}
-                        </option>
-                      ))}
-                    </select>
-                  </div>
-                ) : (
-                  <button
-                    type="button"
-                    onClick={() => setIsSearchOpen(true)}
-                    className="flex min-h-11 flex-1 items-center gap-2 rounded-xl border border-slate-200 bg-white px-4 text-left text-sm font-bold text-slate-500 shadow-xl"
+      <div className="pointer-events-none absolute inset-x-0 top-0 z-20 p-3">
+        <div className="pointer-events-auto flex gap-2">
+          {isSearchOpen ? (
+            <div className="flex-1 rounded-xl border border-slate-200 bg-white p-2 shadow-xl">
+              <div className="flex items-center gap-2">
+                <label className="flex min-h-10 flex-1 items-center gap-2 rounded-lg bg-slate-50 px-3">
+                  <span className="text-base font-black text-accent" aria-hidden="true">⌕</span>
+                  <input
+                    autoFocus
+                    value={query}
+                    onChange={(event) => onQueryChange(event.target.value)}
+                    placeholder={t("searchPlaceholder")}
+                    className="min-w-0 flex-1 bg-transparent text-sm outline-none"
+                    type="search"
                     aria-label={t("searchAria")}
-                  >
-                    <span className="text-lg text-accent" aria-hidden="true">⌕</span>
-                    {t("searchPlaceholder")}
-                  </button>
-                )}
-              </div>
-            </div>
-
-            <div className="absolute left-3 top-[4.5rem] z-20 grid gap-1 rounded-xl border border-slate-200 bg-white p-1 shadow-xl" aria-label={t("floorSelect")}>
-              {floors.map((item) => (
+                  />
+                </label>
                 <button
-                  key={item}
                   type="button"
-                  onClick={() => onFloorChange(item)}
-                  className={`h-10 min-w-12 rounded-lg px-2 text-xs font-black ${
-                    item === floor ? "bg-primary text-white" : "text-primary"
-                  }`}
-                  aria-label={`${item} ${t("floorMap")}`}
-                  aria-pressed={item === floor}
+                  onClick={() => setIsSearchOpen(false)}
+                  className="flex h-10 w-10 items-center justify-center rounded-lg bg-slate-100 text-lg font-black text-slate-700"
+                  aria-label={t("close")}
                 >
-                  {item}
+                  ×
                 </button>
-              ))}
+              </div>
+              <select
+                value={selectedCategory}
+                onChange={(event) => onCategoryChange(event.target.value)}
+                className="mt-2 h-10 w-full rounded-lg border border-slate-200 bg-white px-3 text-sm font-bold text-slate-800"
+                aria-label={t("categorySelect")}
+              >
+                {categories.map((category) => (
+                  <option key={category} value={category}>
+                    {categoryLabel(category)}
+                  </option>
+                ))}
+              </select>
             </div>
+          ) : (
+            <button
+              type="button"
+              onClick={() => setIsSearchOpen(true)}
+              className="flex min-h-11 flex-1 items-center gap-2 rounded-xl border border-slate-200 bg-white px-4 text-left text-sm font-bold text-slate-500 shadow-xl"
+              aria-label={t("searchAria")}
+            >
+              <span className="text-lg text-accent" aria-hidden="true">⌕</span>
+              {t("searchPlaceholder")}
+            </button>
+          )}
+        </div>
+      </div>
 
-            <div className="absolute right-3 top-[4.5rem] z-20 grid overflow-hidden rounded-xl border border-slate-200 bg-white shadow-xl">
-              <button type="button" onClick={() => zoomIn()} className="h-10 w-10 text-xl font-black text-primary" aria-label="Zoom in">
-                +
-              </button>
-              <span className="mx-2 h-px bg-slate-200" />
-              <button type="button" onClick={() => zoomOut()} className="h-10 w-10 text-xl font-black text-primary" aria-label="Zoom out">
-                −
-              </button>
-              <span className="mx-2 h-px bg-slate-200" />
-              <button type="button" onClick={() => resetTransform()} className="h-10 w-10 text-sm font-black text-primary" aria-label="Reset map view">
-                ⊙
-              </button>
-            </div>
-          </>
-        )}
-      </TransformWrapper>
+      <div className="absolute left-3 top-[4.5rem] z-20 grid gap-1 rounded-xl border border-slate-200 bg-white p-1 shadow-xl" aria-label={t("floorSelect")}>
+        {floors.map((item) => (
+          <button
+            key={item}
+            type="button"
+            onClick={() => onFloorChange(item)}
+            className={`h-10 min-w-12 rounded-lg px-2 text-xs font-black ${item === floor ? "bg-primary text-white" : "text-primary"}`}
+            aria-label={`${item} ${t("floorMap")}`}
+            aria-pressed={item === floor}
+          >
+            {item}
+          </button>
+        ))}
+      </div>
 
       <section
         className={`absolute inset-x-0 bottom-0 z-30 rounded-t-2xl border-t border-slate-200 bg-white shadow-sheet transition-[height] duration-200 ${
