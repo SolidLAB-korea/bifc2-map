@@ -22,13 +22,13 @@ type MapViewProps = {
 
 const mapAssetVersion = "20260625-floor-upgrade";
 
-const floorImageMap: Record<Floor, string> = {
+export const floorImageMap: Record<Floor, string> = {
   "1F": `${import.meta.env.BASE_URL}maps/floor-1f.png?v=${mapAssetVersion}`,
   "2F": `${import.meta.env.BASE_URL}maps/floor-2f.png?v=${mapAssetVersion}`,
   "3F": `${import.meta.env.BASE_URL}maps/floor-3f.png?v=${mapAssetVersion}`
 };
 
-const floorAspectRatioMap: Record<Floor, string> = {
+export const floorAspectRatioMap: Record<Floor, string> = {
   "1F": "1305 / 1205",
   "2F": "1382 / 1138",
   "3F": "1335 / 1178"

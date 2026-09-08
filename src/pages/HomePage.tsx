@@ -5,6 +5,7 @@ import CorridorManager from "../components/CorridorManager";
 import FavoriteButton from "../components/FavoriteButton";
 import FloorSelector from "../components/FloorSelector";
 import MapView from "../components/MapView";
+import MobileMapExplorer from "../components/MobileMapExplorer";
 import SearchBar from "../components/SearchBar";
 import SiteGuide from "../components/SiteGuide";
 import StoreBottomSheet, { StoreFacts } from "../components/StoreBottomSheet";
@@ -164,6 +165,13 @@ export default function HomePage() {
     setIsSheetOpen(true);
   };
 
+  const handleMobileStoreSelect = (store: Store) => {
+    setSelectedFloor(store.floor as Floor);
+    setSelectedStore(store);
+    setPickedRoutePoint(null);
+    setIsSheetOpen(false);
+  };
+
   const handleFloorSelect = (floor: Floor) => {
     setSelectedFloor(floor);
     setSelectedStore(null);
@@ -227,7 +235,31 @@ export default function HomePage() {
   };
 
   return (
-    <main className="app-container grid min-w-0 gap-2 py-2 sm:gap-4 sm:py-4">
+    <>
+      <div className="sm:hidden">
+        <MobileMapExplorer
+          floor={selectedFloor}
+          stores={floorStores}
+          results={filteredStores}
+          selectedStore={selectedStore}
+          query={query}
+          selectedCategory={selectedCategory}
+          routePoints={routePoints}
+          routeInstruction={selectedRoute ? (language === "en" ? selectedRoute.instructionEn : selectedRoute.instructionKo) : undefined}
+          isLoading={isStoresLoading}
+          onQueryChange={setQuery}
+          onCategoryChange={setSelectedCategory}
+          onFloorChange={handleFloorSelect}
+          onStoreSelect={handleMobileStoreSelect}
+          onStoreClear={() => {
+            setSelectedStore(null);
+            setPickedRoutePoint(null);
+            setIsSheetOpen(false);
+          }}
+        />
+      </div>
+
+      <main className="app-container hidden min-w-0 gap-2 py-2 sm:grid sm:gap-4 sm:py-4">
       <section
         className="min-w-0 overflow-hidden rounded-lg border border-slate-200 bg-white p-2.5 shadow-panel sm:p-4"
         aria-label={t("searchAria")}
@@ -368,6 +400,7 @@ export default function HomePage() {
         store={isSheetOpen ? selectedStore : null}
         onClose={() => setIsSheetOpen(false)}
       />
-    </main>
+      </main>
+    </>
   );
 }
