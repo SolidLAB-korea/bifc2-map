@@ -1,0 +1,19 @@
+services:
+  - type: worker
+    name: bifc-parking-telegram-bot
+    env: docker
+    dockerfilePath: ./Dockerfile
+    autoDeploy: true
+    envVars:
+      - key: PARKING_SITE_URL
+        sync: false
+      - key: PARKING_ADMIN_ID
+        sync: false
+      - key: PARKING_ADMIN_PASSWORD
+        sync: false
+      - key: PARKING_HEADLESS
+        value: "true"
+      - key: TELEGRAM_BOT_TOKEN
+        sync: false
+      - key: TELEGRAM_ALLOWED_CHAT_IDS
+        sync: false
