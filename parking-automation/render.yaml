@@ -1,10 +1,21 @@
 services:
-  - type: worker
-    name: bifc-parking-telegram-bot
-    env: docker
-    dockerfilePath: ./Dockerfile
+  - type: web
+    name: bifc-parking-automation
+    runtime: docker
+    rootDir: parking-automation
+    dockerfilePath: Dockerfile
+    dockerContext: .
+    healthCheckPath: /api/health
     autoDeploy: true
+    disk:
+      name: parking-history
+      mountPath: /var/data
+      sizeGB: 1
     envVars:
+      - key: RUN_TELEGRAM_BOT
+        value: "true"
+      - key: PARKING_HISTORY_PATH
+        value: /var/data/parking-history.json
       - key: PARKING_SITE_URL
         sync: false
       - key: PARKING_ADMIN_ID
@@ -16,4 +27,6 @@ services:
       - key: TELEGRAM_BOT_TOKEN
         sync: false
       - key: TELEGRAM_ALLOWED_CHAT_IDS
+        sync: false
+      - key: APP_ACCESS_TOKEN
         sync: false

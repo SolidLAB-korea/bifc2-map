@@ -34,12 +34,12 @@ npm run telegram
 
 ## 상시 가동 배포
 
-GitHub Actions는 실행 시간 제한이 있어 장기 폴링 봇을 상시 실행하는 용도로 적합하지 않습니다. 이 프로젝트에는 Playwright 브라우저가 포함된 `Dockerfile`과 Render Background Worker용 `render.yaml`이 포함되어 있습니다.
+GitHub Actions는 실행 시간 제한이 있어 장기 폴링 봇을 상시 실행하는 용도로 적합하지 않습니다. 이 프로젝트에는 Playwright 브라우저가 포함된 Docker 웹 서비스 설정이 있습니다. 한 인스턴스에서 웹앱·API·텔레그램 봇을 함께 실행하고 할인 이력을 영구 디스크에 보관합니다.
 
 1. GitHub에 이 폴더를 포함해 푸시합니다.
 2. Render에서 **New + → Blueprint**를 선택하고 GitHub 저장소를 연결합니다.
-3. 루트 디렉터리를 `parking-automation`으로 지정합니다.
-4. 아래 환경변수를 Render의 Environment 화면에 입력합니다. 비밀번호·토큰을 코드나 GitHub Secrets가 아닌 Render의 비밀 환경변수로 저장합니다.
+3. Blueprint Path에 `parking-automation/render.yaml`을 입력합니다. 이 설정은 웹 서비스의 루트 디렉터리를 자동으로 `parking-automation`으로 지정합니다.
+4. 아래 환경변수를 Render의 Environment 화면에 입력합니다. 비밀번호·토큰을 코드나 GitHub에 저장하지 마세요.
 
 ```ini
 PARKING_SITE_URL=http://211.35.216.149:84
@@ -48,9 +48,11 @@ PARKING_ADMIN_PASSWORD=
 PARKING_HEADLESS=true
 TELEGRAM_BOT_TOKEN=
 TELEGRAM_ALLOWED_CHAT_IDS=
+APP_ACCESS_TOKEN=충분히_긴_무작위_관리자_접속키
 ```
 
-5. 배포가 성공하면 텔레그램에서 `/status`를 보내 응답을 확인합니다. 이후 GitHub `main` 브랜치에 푸시할 때마다 Render가 자동으로 새 버전을 배포합니다.
+5. 배포가 성공하면 Render가 제공한 웹 주소를 열어 설정 화면에서 `APP_ACCESS_TOKEN`과 같은 관리자 접속 키를 입력합니다. 텔레그램에서 `/status`를 보내 응답을 확인합니다.
+6. 상시 실행을 원하면 Render의 절전 없는 유료 Web Service 요금제를 선택하세요. 무료 웹 서비스는 유휴 상태에서 잠들 수 있습니다. 이후 GitHub `main` 브랜치에 푸시할 때마다 Render가 자동으로 새 버전을 배포합니다.
 
 ## 운영 전 확인
 

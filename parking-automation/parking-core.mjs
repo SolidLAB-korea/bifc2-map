@@ -3,9 +3,9 @@ import { readFileSync, existsSync } from "node:fs";
 import { fileURLToPath } from "node:url";
 import { dirname, join } from "node:path";
 export const root = dirname(fileURLToPath(import.meta.url));
-const historyPath = join(root, ".parking-history.json");
 function loadEnv() { const path = join(root, ".env"); if (!existsSync(path)) return; for (const line of readFileSync(path, "utf8").split(/\r?\n/)) { const match = line.match(/^\s*([A-Z0-9_]+)\s*=\s*(.*)\s*$/); if (match && !process.env[match[1]]) process.env[match[1]] = match[2].replace(/^['\"]|['\"]$/g, ""); } }
 loadEnv();
+const historyPath = process.env.PARKING_HISTORY_PATH || join(root, ".parking-history.json");
 let settings = { siteUrl: process.env.PARKING_SITE_URL || "http://211.35.216.49:84", id: process.env.PARKING_ADMIN_ID || "", password: process.env.PARKING_ADMIN_PASSWORD || "" };
 export const getStatus = () => ({ connected: Boolean(settings.id && settings.password), siteUrl: settings.siteUrl });
 export function setSettings(next) { if (typeof next.siteUrl === "string" && /^https?:\/\//.test(next.siteUrl)) settings.siteUrl = next.siteUrl; if (typeof next.id === "string") settings.id = next.id; if (typeof next.password === "string") settings.password = next.password; return getStatus(); }
