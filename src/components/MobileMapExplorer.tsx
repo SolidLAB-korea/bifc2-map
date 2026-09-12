@@ -75,7 +75,7 @@ export default function MobileMapExplorer({
 
   return (
     <section className="relative h-[calc(100dvh-8.5rem)] min-h-[30rem] overflow-hidden bg-slate-100 sm:hidden" aria-label={`${floor} ${t("map")}`}>
-      <div className="absolute inset-x-0 top-0 z-0 overflow-hidden bg-white">
+      <div className={`absolute inset-x-0 z-0 overflow-hidden bg-white transition-[top] duration-200 ${isSearchOpen ? "top-[8.5rem]" : "top-[4.5rem]"}`}>
         <div className="relative w-full" style={{ aspectRatio: floorAspectRatioMap[floor] }}>
           {!imageFailed ? (
             <img
@@ -153,7 +153,12 @@ export default function MobileMapExplorer({
         </div>
       </div>
 
-      <div className="absolute left-3 top-[4.5rem] z-20 grid gap-1 rounded-xl border border-slate-200 bg-white p-1 shadow-xl" aria-label={t("floorSelect")}>
+      <div
+        className={`absolute left-3 z-20 grid gap-1 rounded-xl border border-slate-200 bg-white p-1 shadow-xl transition-[top] duration-200 ${
+          isSearchOpen ? "top-[8.5rem]" : "top-[4.5rem]"
+        }`}
+        aria-label={t("floorSelect")}
+      >
         {floors.map((item) => (
           <button
             key={item}
